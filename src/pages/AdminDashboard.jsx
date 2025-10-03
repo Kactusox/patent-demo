@@ -1,0 +1,1487 @@
+import { useState, useEffect } from 'react'
+import { Row, Col, Card, Button, Badge, Table, Form, InputGroup, Modal, Alert, Spinner } from 'react-bootstrap'
+import { 
+  FaHome, FaUsers, FaFileAlt, FaCog, FaSignOutAlt, FaShieldAlt, 
+  FaChartBar, FaCheckCircle, FaBuilding, FaSearch, FaEye, FaTrash,
+  FaDownload, FaClock, FaTimes, FaPlus, FaEdit, FaExclamationTriangle, FaCheck, FaKey
+} from 'react-icons/fa'
+import { getCurrentUser } from '../utils/auth'
+import { logout } from '../services/authService'
+import { 
+  getAllPatents, 
+  deletePatent, 
+  approvePatent, 
+  rejectPatent,
+  getStatistics,
+  downloadPatent 
+} from '../services/patentService'
+import { 
+  getAllUsers, 
+  createUser, 
+  updateUser, 
+  deleteUser,
+  resetUserPassword,
+  getActivityLogs
+} from '../services/userService'
+import { downloadZipFile, exportToExcel, getExportStats } from '../services/exportService'
+import { INSTITUTION_INFO } from '../utils/patentData'
+import { 
+  AddUserModal, 
+  EditUserModal, 
+  DeleteUserModal, 
+  ResetPasswordModal,
+  ActivityLogsModal 
+} from '../components/UserManagementModals'
+
+const AdminDashboard = () => {
+  const [activeTab, setActiveTab] = useState('overview')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedPatent, setSelectedPatent] = useState(null)
+  const [showPatentModal, setShowPatentModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showApproveModal, setShowApproveModal] = useState(false)
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [filterInstitution, setFilterInstitution] = useState('all')
+  const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [patents, setPatents] = useState([])
+  const [users, setUsers] = useState([])
+  const [activityLogs, setActivityLogs] = useState([])
+  const [stats, setStats] = useState({
+    total: 0,
+    approved: 0,
+    pending: 0,
+    rejected: 0,
+    byInstitution: []
+  })
+  const [exportStats, setExportStats] = useState(null)
+  const [exportLoading, setExportLoading] = useState(false)
+  
+  // User management modals
+  const [showAddUserModal, setShowAddUserModal] = useState(false)
+  const [showEditUserModal, setShowEditUserModal] = useState(false)
+  const [showDeleteUserModal, setShowDeleteUserModal] = useState(false)
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false)
+  const [showActivityLogsModal, setShowActivityLogsModal] = useState(false)
+  const [selectedUser, setSelectedUser] = useState(null)
+  
+  // User form state
+  const [userFormData, setUserFormData] = useState({
+    username: '',
+    password: '',
+    role: 'institution',
+    institutionName: '',
+    fullName: '',
+    phoneNumber: '',
+    isActive: true
+  })
+  const [userFormErrors, setUserFormErrors] = useState({})
+  const [newPassword, setNewPassword] = useState('')
+  
+  const currentUser = getCurrentUser()
+
+  // Load data on mount
+  useEffect(() => {
+    loadPatents()
+    loadStatistics()
+    loadUsers()
+  }, [])
+
+  const loadPatents = async () => {
+    setLoading(true)
+    try {
+      const allPatents = await getAllPatents()
+      setPatents(allPatents)
+    } catch (error) {
+      console.error('Error loading patents:', error)
+      alert('Патентларни юклашда хато: ' + error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadStatistics = async () => {
+    try {
+      const statistics = await getStatistics()
+      setStats(statistics)
+    } catch (error) {
+      console.error('Error loading statistics:', error)
+    }
+  }
+
+  const loadUsers = async () => {
+    try {
+      const allUsers = await getAllUsers()
+      setUsers(allUsers)
+    } catch (error) {
+      console.error('Error loading users:', error)
+    }
+  }
+
+  const loadActivityLogs = async () => {
+    try {
+      const logs = await getActivityLogs()
+      setActivityLogs(logs)
+      setShowActivityLogsModal(true)
+    } catch (error) {
+      console.error('Error loading activity logs:', error)
+      alert('Логларни юклашда хато: ' + error.message)
+    }
+  }
+
+  const loadExportStats = async () => {
+    try {
+      const stats = await getExportStats(filterInstitution)
+      setExportStats(stats)
+    } catch (error) {
+      console.error('Error loading export stats:', error)
+    }
+  }
+
+  // Load export stats when institution filter changes
+  useEffect(() => {
+    if (activeTab === 'patents') {
+      loadExportStats()
+    }
+  }, [filterInstitution, activeTab])
+
+  const handleLogout = () => {
+    if (window.confirm('Тизимдан чиқмоқчимисиз?')) {
+      logout()
+    }
+  }
+
+  const handleViewPatent = (patent) => {
+    setSelectedPatent(patent)
+    setShowPatentModal(true)
+  }
+
+  const handleDeletePatent = (patent) => {
+    setSelectedPatent(patent)
+    setShowDeleteModal(true)
+  }
+
+  const confirmDelete = async () => {
+    setSubmitting(true)
+    try {
+      await deletePatent(selectedPatent.id)
+      alert('Патент муваффақиятли ўчирилди')
+      await loadPatents()
+      await loadStatistics()
+      setShowDeleteModal(false)
+      setSelectedPatent(null)
+    } catch (error) {
+      console.error('Error deleting patent:', error)
+      alert('Ўчиришда хато: ' + error.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleApprove = (patent) => {
+    setSelectedPatent(patent)
+    setShowApproveModal(true)
+  }
+
+  const confirmApprove = async () => {
+    setSubmitting(true)
+    try {
+      await approvePatent(selectedPatent.id, currentUser.username)
+      alert('Патент тасдиқланди!')
+      await loadPatents()
+      await loadStatistics()
+      setShowApproveModal(false)
+      setSelectedPatent(null)
+    } catch (error) {
+      console.error('Error approving patent:', error)
+      alert('Тасдиқлашда хато: ' + error.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleReject = (patent) => {
+    setSelectedPatent(patent)
+    setShowRejectModal(true)
+  }
+
+  const confirmReject = async () => {
+    setSubmitting(true)
+    try {
+      await rejectPatent(selectedPatent.id)
+      alert('Патент рад этилди')
+      await loadPatents()
+      await loadStatistics()
+      setShowRejectModal(false)
+      setSelectedPatent(null)
+    } catch (error) {
+      console.error('Error rejecting patent:', error)
+      alert('Рад этишда хато: ' + error.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleDownload = (patent) => {
+    downloadPatent(patent)
+  }
+
+  // ========================================
+  // USER MANAGEMENT HANDLERS
+  // ========================================
+
+  const handleAddUser = () => {
+    setUserFormData({
+      username: '',
+      password: '',
+      role: 'institution',
+      institutionName: '',
+      fullName: '',
+      phoneNumber: '',
+      isActive: true
+    })
+    setUserFormErrors({})
+    setShowAddUserModal(true)
+  }
+
+  const handleEditUser = (user) => {
+    setSelectedUser(user)
+    setUserFormData({
+      username: user.username,
+      password: '',
+      role: user.role,
+      institutionName: user.institution_name || '',
+      fullName: user.full_name || '',
+      phoneNumber: user.phone_number || '',
+      isActive: user.is_active === 1
+    })
+    setUserFormErrors({})
+    setShowEditUserModal(true)
+  }
+
+  const handleDeleteUser = (user) => {
+    setSelectedUser(user)
+    setShowDeleteUserModal(true)
+  }
+
+  const handleResetPassword = (user) => {
+    setSelectedUser(user)
+    setNewPassword('')
+    setShowResetPasswordModal(true)
+  }
+
+  const handleUserFormChange = (e) => {
+    const { name, value } = e.target
+    setUserFormData(prev => ({ ...prev, [name]: value }))
+    // Clear error for this field
+    if (userFormErrors[name]) {
+      setUserFormErrors(prev => ({ ...prev, [name]: '' }))
+    }
+  }
+
+  const validateUserForm = (isEdit = false) => {
+    const errors = {}
+    
+    if (!isEdit && !userFormData.username.trim()) {
+      errors.username = 'Фойдаланувчи номини киритинг'
+    }
+    
+    if (!isEdit && !userFormData.password) {
+      errors.password = 'Паролни киритинг'
+    } else if (!isEdit && userFormData.password.length < 6) {
+      errors.password = 'Парол камида 6 та белгидан иборат бўлиши керак'
+    }
+    
+    if (userFormData.role === 'institution' && !userFormData.institutionName.trim()) {
+      errors.institutionName = 'Муассаса номини киритинг'
+    }
+    
+    if (userFormData.phoneNumber && !userFormData.phoneNumber.match(/^\+998\d{9}$/)) {
+      errors.phoneNumber = 'Телефон рақами нотўғри форматда. Намуна: +998901234567'
+    }
+
+    setUserFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  const handleUserFormSubmit = async (e) => {
+    e.preventDefault()
+    
+    if (!validateUserForm(false)) {
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await createUser({
+        username: userFormData.username,
+        password: userFormData.password,
+        role: userFormData.role,
+        institutionName: userFormData.institutionName,
+        fullName: userFormData.fullName,
+        phoneNumber: userFormData.phoneNumber
+      })
+      
+      alert('Фойдаланувчи муваффақиятли яратилди!')
+      await loadUsers()
+      setShowAddUserModal(false)
+    } catch (error) {
+      console.error('Error creating user:', error)
+      alert('Хато: ' + error.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // ========================================
+  // EXPORT HANDLERS
+  // ========================================
+
+  const handleDownloadZip = async () => {
+    setExportLoading(true)
+    try {
+      await downloadZipFile(filterInstitution)
+      // Success - file will download automatically
+    } catch (error) {
+      console.error('Error downloading ZIP:', error)
+      alert('ZIP юклашда хато: ' + error.message)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
+  const handleExportExcel = async () => {
+    setExportLoading(true)
+    try {
+      await exportToExcel(filterInstitution)
+      alert('Excel файли муваффақиятли юклаб олинди!')
+    } catch (error) {
+      console.error('Error exporting Excel:', error)
+      alert('Excel экспорт қилишда хато: ' + error.message)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
+  const handleUserEditSubmit = async (e) => {
+    e.preventDefault()
+    
+    if (!validateUserForm(true)) {
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await updateUser(selectedUser.id, {
+        institutionName: userFormData.institutionName,
+        fullName: userFormData.fullName,
+        phoneNumber: userFormData.phoneNumber,
+        isActive: userFormData.isActive
+      })
+      
+      alert('Фойдаланувчи муваффақиятли янгиланди!')
+      await loadUsers()
+      setShowEditUserModal(false)
+      setSelectedUser(null)
+    } catch (error) {
+      console.error('Error updating user:', error)
+      alert('Хато: ' + error.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const confirmDeleteUser = async () => {
+    setSubmitting(true)
+    try {
+      await deleteUser(selectedUser.id)
+      alert('Фойдаланувчи муваффақиятли ўчирилди')
+      await loadUsers()
+      setShowDeleteUserModal(false)
+      setSelectedUser(null)
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      alert('Ўчиришда хато: ' + error.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const confirmResetPassword = async (e) => {
+    e.preventDefault()
+    
+    if (!newPassword || newPassword.length < 6) {
+      alert('Парол камида 6 та белгидан иборат бўлиши керак')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await resetUserPassword(selectedUser.id, newPassword)
+      alert('Парол муваффақиятли тикланди!')
+      setShowResetPasswordModal(false)
+      setSelectedUser(null)
+      setNewPassword('')
+    } catch (error) {
+      console.error('Error resetting password:', error)
+      alert('Хато: ' + error.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // Filter patents
+  const getFilteredPatents = () => {
+    let filtered = patents
+
+    if (searchQuery) {
+      filtered = filtered.filter(p =>
+        p.patent_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.application_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.authors.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.institution_name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(p => p.status === filterStatus)
+    }
+
+    if (filterInstitution !== 'all') {
+      filtered = filtered.filter(p => p.institution === filterInstitution)
+    }
+
+    return filtered
+  }
+
+  const filteredPatents = getFilteredPatents()
+
+  const statsCards = [
+    { 
+      label: 'Жами патентлар', 
+      value: stats.total.toString(), 
+      icon: FaFileAlt, 
+      color: '#0d6efd',
+      bgColor: '#e7f1ff'
+    },
+    { 
+      label: 'Муассасалар', 
+      value: Object.keys(INSTITUTION_INFO).length.toString(), 
+      icon: FaBuilding, 
+      color: '#198754',
+      bgColor: '#d1f7e5'
+    },
+    { 
+      label: 'Тасдиқланган', 
+      value: stats.approved.toString(), 
+      icon: FaCheckCircle, 
+      color: '#198754',
+      bgColor: '#d1f7e5'
+    },
+    { 
+      label: 'Кутилмоқда', 
+      value: stats.pending.toString(), 
+      icon: FaClock, 
+      color: '#ffc107',
+      bgColor: '#fff3cd'
+    }
+  ]
+
+  // Group patents by institution for stats table
+  const institutionStats = Object.entries(INSTITUTION_INFO).map(([key, info]) => {
+    const instPatents = patents.filter(p => p.institution === key)
+    return {
+      key,
+      name: info.shortName,
+      total: instPatents.length,
+      approved: instPatents.filter(p => p.status === 'approved').length,
+      pending: instPatents.filter(p => p.status === 'pending').length,
+      rejected: instPatents.filter(p => p.status === 'rejected').length
+    }
+  })
+
+  return (
+    <div className="dashboard-container">
+      {/* Sidebar */}
+      <div className="sidebar">
+        <div className="sidebar-header">
+          <div className="sidebar-brand">
+            <div className="sidebar-brand-icon">
+              <FaShieldAlt />
+            </div>
+            <div className="sidebar-brand-text">
+              <h5>Админ Панели</h5>
+              <small>Patent System</small>
+            </div>
+          </div>
+        </div>
+
+        <nav className="sidebar-nav">
+          <div className="nav-item">
+            <a 
+              href="#" 
+              className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={(e) => { e.preventDefault(); setActiveTab('overview'); }}
+            >
+              <FaHome className="nav-icon" />
+              <span>Асосий</span>
+            </a>
+          </div>
+          <div className="nav-item">
+            <a 
+              href="#" 
+              className={`nav-link ${activeTab === 'patents' ? 'active' : ''}`}
+              onClick={(e) => { e.preventDefault(); setActiveTab('patents'); }}
+            >
+              <FaFileAlt className="nav-icon" />
+              <span>Патентлар</span>
+              <Badge bg="light" text="dark" className="ms-auto">
+                {patents.length}
+              </Badge>
+            </a>
+          </div>
+          <div className="nav-item">
+            <a 
+              href="#" 
+              className={`nav-link ${activeTab === 'users' ? 'active' : ''}`}
+              onClick={(e) => { e.preventDefault(); setActiveTab('users'); }}
+            >
+              <FaUsers className="nav-icon" />
+              <span>Фойдаланувчилар</span>
+            </a>
+          </div>
+          <div className="nav-item">
+            <a 
+              href="#" 
+              className={`nav-link ${activeTab === 'settings' ? 'active' : ''}`}
+              onClick={(e) => { e.preventDefault(); setActiveTab('settings'); }}
+            >
+              <FaCog className="nav-icon" />
+              <span>Созламалар</span>
+            </a>
+          </div>
+          <div className="nav-item mt-4">
+            <a 
+              href="#" 
+              className="nav-link text-danger"
+              onClick={(e) => { e.preventDefault(); handleLogout(); }}
+            >
+              <FaSignOutAlt className="nav-icon" />
+              <span>Чиқиш</span>
+            </a>
+          </div>
+        </nav>
+      </div>
+
+      {/* Main Content */}
+      <div className="main-content">
+        {/* Top Navbar */}
+        <div className="top-navbar">
+          <Row className="align-items-center">
+            <Col>
+              <div className="navbar-welcome">
+                <h4>Хуш келибсиз, {currentUser?.fullName}</h4>
+                <p className="text-muted mb-0">
+                  {new Date().toLocaleDateString('uz-UZ', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </p>
+              </div>
+            </Col>
+            <Col xs="auto">
+              <Badge bg="primary" className="p-2 px-3">
+                <FaShieldAlt className="me-2" />
+                Администратор
+              </Badge>
+            </Col>
+          </Row>
+        </div>
+
+        {/* Content Section */}
+        <div className="content-section">
+          {/* OVERVIEW TAB */}
+          {activeTab === 'overview' && (
+            <>
+              {/* Statistics Cards */}
+              <Row className="g-4 mb-4">
+                {statsCards.map((stat, idx) => (
+                  <Col key={idx} xs={12} sm={6} lg={3}>
+                    <Card className="stats-card border-0 h-100">
+                      <Card.Body>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <div>
+                            <p className="text-muted mb-1 small">{stat.label}</p>
+                            <h2 className="mb-0 fw-bold">{stat.value}</h2>
+                          </div>
+                          <div 
+                            className="stats-icon" 
+                            style={{ backgroundColor: stat.bgColor, color: stat.color }}
+                          >
+                            <stat.icon />
+                          </div>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+
+              {/* Institutions Table */}
+              <Card className="border-0 shadow-sm">
+                <Card.Header className="bg-white border-bottom py-3">
+                  <h5 className="mb-0 fw-bold">
+                    <FaBuilding className="me-2 text-primary" />
+                    Муассасалар бўйича статистика
+                  </h5>
+                </Card.Header>
+                <Card.Body className="p-0">
+                  <Table responsive hover className="mb-0">
+                    <thead className="bg-light">
+                      <tr>
+                        <th className="px-4 py-3">Муассаса</th>
+                        <th className="px-4 py-3 text-center">Жами</th>
+                        <th className="px-4 py-3 text-center">Тасдиқланган</th>
+                        <th className="px-4 py-3 text-center">Кутилмоқда</th>
+                        <th className="px-4 py-3 text-center">Амаллар</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {institutionStats.map((inst) => (
+                        <tr key={inst.key}>
+                          <td className="px-4 py-3">
+                            <div className="d-flex align-items-center">
+                              <div 
+                                className="rounded-circle d-flex align-items-center justify-content-center me-3"
+                                style={{ width: 40, height: 40, backgroundColor: '#e7f1ff' }}
+                              >
+                                <FaBuilding className="text-primary" />
+                              </div>
+                              <div>
+                                <div className="fw-semibold">{inst.name}</div>
+                                <small className="text-muted">{inst.key}</small>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <Badge bg="primary" className="px-3 py-2">{inst.total}</Badge>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <Badge bg="success" className="px-3 py-2">{inst.approved}</Badge>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <Badge bg="warning" className="px-3 py-2">{inst.pending}</Badge>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <Button 
+                              variant="outline-primary" 
+                              size="sm"
+                              onClick={() => {
+                                setFilterInstitution(inst.key)
+                                setActiveTab('patents')
+                              }}
+                            >
+                              <FaEye className="me-1" /> Кўриш
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </Card.Body>
+              </Card>
+            </>
+          )}
+
+          {/* PATENTS TAB */}
+          {activeTab === 'patents' && (
+            <>
+              {/* Search and Filters */}
+              <Card className="border-0 shadow-sm mb-4">
+                <Card.Body>
+                  <Row className="g-3 align-items-end">
+                    <Col md={6}>
+                      <InputGroup>
+                        <InputGroup.Text>
+                          <FaSearch />
+                        </InputGroup.Text>
+                        <Form.Control
+                          type="text"
+                          placeholder="Патент рақами, номи, муаллиф ёки муассаса бўйича қидириш..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        {searchQuery && (
+                          <Button 
+                            variant="outline-secondary"
+                            onClick={() => setSearchQuery('')}
+                          >
+                            <FaTimes />
+                          </Button>
+                        )}
+                      </InputGroup>
+                    </Col>
+                    <Col md={3}>
+                      <Form.Select 
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                      >
+                        <option value="all">Барча ҳолатлар</option>
+                        <option value="approved">Тасдиқланган</option>
+                        <option value="pending">Кутилмоқда</option>
+                        <option value="rejected">Рад этилган</option>
+                      </Form.Select>
+                    </Col>
+                    <Col md={3}>
+                      <Form.Select 
+                        value={filterInstitution}
+                        onChange={(e) => setFilterInstitution(e.target.value)}
+                      >
+                        <option value="all">Барча муассасалар</option>
+                        <option value="neftgaz">Нефт ва газ</option>
+                        <option value="mineral">Минерал ресурслар</option>
+                        <option value="gidro">Гидрогеология</option>
+                        <option value="geofizika">Геофизика</option>
+                      </Form.Select>
+                    </Col>
+                  </Row>
+                  
+                  {/* Export Buttons Row */}
+                  <Row className="mt-3">
+                    <Col>
+                      <div className="d-flex gap-2 align-items-center">
+                        <Button 
+                          variant="success" 
+                          size="sm"
+                          onClick={handleDownloadZip}
+                          disabled={exportLoading || filteredPatents.length === 0}
+                        >
+                          {exportLoading ? (
+                            <Spinner animation="border" size="sm" className="me-2" />
+                          ) : (
+                            <FaDownload className="me-2" />
+                          )}
+                          ZIP юклаб олиш
+                        </Button>
+                        
+                        <Button 
+                          variant="info" 
+                          size="sm"
+                          onClick={handleExportExcel}
+                          disabled={exportLoading || filteredPatents.length === 0}
+                        >
+                          {exportLoading ? (
+                            <Spinner animation="border" size="sm" className="me-2" />
+                          ) : (
+                            <FaDownload className="me-2" />
+                          )}
+                          Excel экспорт
+                        </Button>
+                        
+                        {exportStats && (
+                          <small className="text-muted ms-3">
+                            Жами файллар: <strong>{exportStats.totalFiles}</strong>
+                            {exportStats.byType && exportStats.byType.length > 0 && (
+                              <span className="ms-2">
+                                ({exportStats.byType.map(t => `${t.type}: ${t.count}`).join(', ')})
+                              </span>
+                            )}
+                          </small>
+                        )}
+                      </div>
+                    </Col>
+                  </Row>
+
+                  {(searchQuery || filterStatus !== 'all' || filterInstitution !== 'all') && (
+                    <div className="mt-3">
+                      <small className="text-muted">
+                        Топилди: <strong>{filteredPatents.length}</strong> натижа
+                      </small>
+                      {(filterStatus !== 'all' || filterInstitution !== 'all') && (
+                        <Button 
+                          variant="link" 
+                          size="sm"
+                          className="ms-2"
+                          onClick={() => {
+                            setFilterStatus('all')
+                            setFilterInstitution('all')
+                            setSearchQuery('')
+                          }}
+                        >
+                          Филтрларни тозалаш
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+
+              {/* Patents Table */}
+              <Card className="border-0 shadow-sm">
+                <Card.Body className="p-0">
+                  {loading ? (
+                    <div className="text-center py-5">
+                      <Spinner animation="border" variant="primary" />
+                      <p className="text-muted mt-3">Юкланмоқда...</p>
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
+                      <Table hover className="mb-0">
+                        <thead className="bg-light">
+                          <tr>
+                            <th className="px-4 py-3">№</th>
+                            <th className="px-4 py-3">Патент рақами</th>
+                            <th className="px-4 py-3">Номи</th>
+                            <th className="px-4 py-3">Тури</th>
+                            <th className="px-4 py-3">Муассаса</th>
+                            <th className="px-4 py-3 text-center">Ҳолати</th>
+                            <th className="px-4 py-3 text-center">Амаллар</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredPatents.length === 0 ? (
+                            <tr>
+                              <td colSpan="7" className="text-center py-5">
+                                <FaFileAlt size={48} className="text-muted mb-3 d-block mx-auto" />
+                                <p className="text-muted mb-0">Ҳеч қандай патент топилмади</p>
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredPatents.map((patent, idx) => (
+                              <tr key={patent.id}>
+                                <td className="px-4 py-3">{idx + 1}</td>
+                                <td className="px-4 py-3">
+                                  <Badge bg="primary" className="font-monospace">
+                                    {patent.patent_number}
+                                  </Badge>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="text-truncate" style={{ maxWidth: 300 }}>
+                                    {patent.title}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <small className="text-muted">{patent.type}</small>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <small>{INSTITUTION_INFO[patent.institution]?.shortName}</small>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  {patent.status === 'approved' && (
+                                    <Badge bg="success">
+                                      <FaCheckCircle className="me-1" /> Тасдиқланган
+                                    </Badge>
+                                  )}
+                                  {patent.status === 'pending' && (
+                                    <Badge bg="warning">
+                                      <FaClock className="me-1" /> Кутилмоқда
+                                    </Badge>
+                                  )}
+                                  {patent.status === 'rejected' && (
+                                    <Badge bg="danger">
+                                      <FaTimes className="me-1" /> Рад этилган
+                                    </Badge>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <div className="d-flex gap-1 justify-content-center flex-wrap">
+                                    <Button 
+                                      variant="outline-primary" 
+                                      size="sm"
+                                      onClick={() => handleViewPatent(patent)}
+                                      title="Кўриш"
+                                    >
+                                      <FaEye />
+                                    </Button>
+                                    {patent.status === 'pending' && (
+                                      <>
+                                        <Button 
+                                          variant="outline-success" 
+                                          size="sm"
+                                          onClick={() => handleApprove(patent)}
+                                          title="Тасдиқлаш"
+                                        >
+                                          <FaCheck />
+                                        </Button>
+                                        <Button 
+                                          variant="outline-warning" 
+                                          size="sm"
+                                          onClick={() => handleReject(patent)}
+                                          title="Рад этиш"
+                                        >
+                                          <FaTimes />
+                                        </Button>
+                                      </>
+                                    )}
+                                    <Button 
+                                      variant="outline-info" 
+                                      size="sm"
+                                      onClick={() => handleDownload(patent)}
+                                      title="Юклаб олиш"
+                                      disabled={!patent.file_path}
+                                    >
+                                      <FaDownload />
+                                    </Button>
+                                    <Button 
+                                      variant="outline-danger" 
+                                      size="sm"
+                                      onClick={() => handleDeletePatent(patent)}
+                                      title="Ўчириш"
+                                    >
+                                      <FaTrash />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </Table>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+            </>
+          )}
+
+          {/* USERS TAB */}
+          {activeTab === 'users' && (
+            <>
+              <Card className="border-0 shadow-sm mb-4">
+                <Card.Header className="bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0 fw-bold">
+                    <FaUsers className="me-2 text-primary" />
+                    Фойдаланувчилар бошқаруви
+                  </h5>
+                  <div className="d-flex gap-2">
+                    <Button variant="info" size="sm" onClick={loadActivityLogs}>
+                      <FaEye className="me-2" />
+                      Фаолият журнали
+                    </Button>
+                    <Button variant="primary" size="sm" onClick={handleAddUser}>
+                      <FaPlus className="me-2" />
+                      Янги фойдаланувчи
+                    </Button>
+                  </div>
+                </Card.Header>
+                <Card.Body className="p-0">
+                  <Table responsive hover className="mb-0">
+                    <thead className="bg-light">
+                      <tr>
+                        <th className="px-4 py-3">Фойдаланувчи</th>
+                        <th className="px-4 py-3">Муассаса</th>
+                        <th className="px-4 py-3">Телефон</th>
+                        <th className="px-4 py-3">Роль</th>
+                        <th className="px-4 py-3 text-center">Ҳолати</th>
+                        <th className="px-4 py-3 text-center">Амаллар</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((user) => (
+                        <tr key={user.id}>
+                          <td className="px-4 py-3">
+                            <div className="d-flex align-items-center">
+                              <div 
+                                className="rounded-circle d-flex align-items-center justify-content-center me-3"
+                                style={{ 
+                                  width: 40, 
+                                  height: 40, 
+                                  backgroundColor: user.role === 'admin' ? '#e7f1ff' : '#d1f7e5' 
+                                }}
+                              >
+                                {user.role === 'admin' ? (
+                                  <FaShieldAlt className="text-primary" />
+                                ) : (
+                                  <FaBuilding className="text-success" />
+                                )}
+                              </div>
+                              <div>
+                                <div className="fw-semibold">{user.username}</div>
+                                <small className="text-muted">
+                                  {user.full_name || user.institution_name || '—'}
+                                </small>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <small>{user.institution_name || '—'}</small>
+                          </td>
+                          <td className="px-4 py-3">
+                            <small>{user.phone_number || '—'}</small>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Badge bg={user.role === 'admin' ? 'danger' : 'info'}>
+                              {user.role === 'admin' ? 'Администратор' : 'Институт'}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <Badge bg={user.is_active ? 'success' : 'secondary'}>
+                              {user.is_active ? 'Фаол' : 'Нофаол'}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            {user.id === 1 ? (
+                              <Button variant="outline-secondary" size="sm" disabled>
+                                <FaEdit className="me-1" /> Асосий админ
+                              </Button>
+                            ) : (
+                              <div className="d-flex gap-1 justify-content-center flex-wrap">
+                                <Button 
+                                  variant="outline-primary" 
+                                  size="sm"
+                                  onClick={() => handleEditUser(user)}
+                                  title="Таҳрирлаш"
+                                >
+                                  <FaEdit />
+                                </Button>
+                                <Button 
+                                  variant="outline-info" 
+                                  size="sm"
+                                  onClick={() => handleResetPassword(user)}
+                                  title="Паролни тиклаш"
+                                >
+                                  <FaKey />
+                                </Button>
+                                <Button 
+                                  variant="outline-danger" 
+                                  size="sm"
+                                  onClick={() => handleDeleteUser(user)}
+                                  title="Ўчириш"
+                                >
+                                  <FaTrash />
+                                </Button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </Card.Body>
+              </Card>
+            </>
+          )}
+
+          {/* SETTINGS TAB */}
+          {activeTab === 'settings' && (
+            <Row className="g-4">
+              <Col md={6}>
+                <Card className="border-0 shadow-sm">
+                  <Card.Header className="bg-white border-bottom">
+                    <h5 className="mb-0 fw-bold">Система созламалари</h5>
+                  </Card.Header>
+                  <Card.Body>
+                    <Form>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Университет номи</Form.Label>
+                        <Form.Control 
+                          type="text" 
+                          defaultValue="Геология фанлари университети"
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Тизим тили</Form.Label>
+                        <Form.Select>
+                          <option>Ўзбекча</option>
+                          <option>Русский</option>
+                          <option>English</option>
+                        </Form.Select>
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Check 
+                          type="checkbox"
+                          label="Автоматик тасдиқлаш"
+                          defaultChecked={false}
+                        />
+                      </Form.Group>
+                      <Button variant="primary">
+                        Сақлаш
+                      </Button>
+                    </Form>
+                  </Card.Body>
+                </Card>
+              </Col>
+              <Col md={6}>
+                <Card className="border-0 shadow-sm">
+                  <Card.Header className="bg-white border-bottom">
+                    <h5 className="mb-0 fw-bold">Хавфсизлик</h5>
+                  </Card.Header>
+                  <Card.Body>
+                    <Form>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Эски парол</Form.Label>
+                        <Form.Control type="password" />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Янги парол</Form.Label>
+                        <Form.Control type="password" />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Паролни тасдиқлаш</Form.Label>
+                        <Form.Control type="password" />
+                      </Form.Group>
+                      <Button variant="warning">
+                        Паролни ўзгартириш
+                      </Button>
+                    </Form>
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          )}
+        </div>
+      </div>
+
+      {/* Patent Details Modal */}
+      <Modal 
+        show={showPatentModal} 
+        onHide={() => setShowPatentModal(false)}
+        size="lg"
+      >
+        <Modal.Header closeButton className="bg-primary text-white">
+          <Modal.Title>
+            <FaFileAlt className="me-2" />
+            Патент тафсилотлари
+          </Modal.Title>
+        </Modal.Header>
+        {selectedPatent && (
+          <Modal.Body>
+            <Row className="g-4">
+              <Col md={6}>
+                <h6 className="text-muted mb-3">Асосий маълумотлар</h6>
+                <div className="mb-3">
+                  <small className="text-muted">Патент рақами</small>
+                  <p className="fw-bold mb-0">{selectedPatent.patent_number}</p>
+                </div>
+                <div className="mb-3">
+                  <small className="text-muted">Талабнома рақами</small>
+                  <p className="fw-bold mb-0">{selectedPatent.application_number}</p>
+                </div>
+                <div className="mb-3">
+                  <small className="text-muted">Тури</small>
+                  <p className="mb-0">{selectedPatent.type}</p>
+                </div>
+                <div className="mb-3">
+                  <small className="text-muted">Топширилган сана</small>
+                  <p className="mb-0">{selectedPatent.submission_date}</p>
+                </div>
+                <div className="mb-3">
+                  <small className="text-muted">Рўйхатдан ўтказилган сана</small>
+                  <p className="mb-0">{selectedPatent.registration_date}</p>
+                </div>
+              </Col>
+              <Col md={6}>
+                <h6 className="text-muted mb-3">Қўшимча маълумотлар</h6>
+                <div className="mb-3">
+                  <small className="text-muted">Муассаса</small>
+                  <p className="mb-0">{selectedPatent.institution_name}</p>
+                </div>
+                <div className="mb-3">
+                  <small className="text-muted">Ҳолати</small>
+                  <p className="mb-0">
+                    {selectedPatent.status === 'approved' && (
+                      <Badge bg="success">
+                        <FaCheckCircle className="me-1" /> Тасдиқланган
+                      </Badge>
+                    )}
+                    {selectedPatent.status === 'pending' && (
+                      <Badge bg="warning">
+                        <FaClock className="me-1" /> Кутилмоқда
+                      </Badge>
+                    )}
+                    {selectedPatent.status === 'rejected' && (
+                      <Badge bg="danger">
+                        <FaTimes className="me-1" /> Рад этилган
+                      </Badge>
+                    )}
+                  </p>
+                </div>
+                {selectedPatent.approved_by && (
+                  <div className="mb-3">
+                    <small className="text-muted">Тасдиқлаган</small>
+                    <p className="mb-0">{selectedPatent.approved_by}</p>
+                  </div>
+                )}
+              </Col>
+              <Col xs={12}>
+                <h6 className="text-muted mb-2">Номи</h6>
+                <p className="mb-4">{selectedPatent.title}</p>
+                
+                <h6 className="text-muted mb-2">Муаллифлар</h6>
+                <ul className="mb-0">
+                  {selectedPatent.authors.split(';').map((author, idx) => (
+                    <li key={idx}>{author.trim()}</li>
+                  ))}
+                </ul>
+              </Col>
+            </Row>
+          </Modal.Body>
+        )}
+        <Modal.Footer>
+          {selectedPatent?.file_path && (
+            <Button 
+              variant="success" 
+              onClick={() => handleDownload(selectedPatent)}
+            >
+              <FaDownload className="me-2" />
+              Юклаб олиш
+            </Button>
+          )}
+          {selectedPatent?.status === 'pending' && (
+            <>
+              <Button 
+                variant="success"
+                onClick={() => {
+                  setShowPatentModal(false)
+                  handleApprove(selectedPatent)
+                }}
+              >
+                <FaCheck className="me-2" />
+                Тасдиқлаш
+              </Button>
+              <Button 
+                variant="warning"
+                onClick={() => {
+                  setShowPatentModal(false)
+                  handleReject(selectedPatent)
+                }}
+              >
+                <FaTimes className="me-2" />
+                Рад этиш
+              </Button>
+            </>
+          )}
+          <Button variant="secondary" onClick={() => setShowPatentModal(false)}>
+            Ёпиш
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Approve Confirmation Modal */}
+      <Modal 
+        show={showApproveModal} 
+        onHide={() => !submitting && setShowApproveModal(false)}
+        centered
+        backdrop={submitting ? 'static' : true}
+        keyboard={!submitting}
+      >
+        <Modal.Header closeButton={!submitting} className="bg-success text-white">
+          <Modal.Title>
+            <FaCheck className="me-2" />
+            Тасдиқлаш
+          </Modal.Title>
+        </Modal.Header>
+        {selectedPatent && (
+          <Modal.Body>
+            <Alert variant="success">
+              <FaCheckCircle className="me-2" />
+              Сиз бу патентни тасдиқламоқчимисиз?
+            </Alert>
+            <div className="bg-light p-3 rounded">
+              <p className="mb-1">
+                <strong>Патент рақами:</strong> {selectedPatent.patent_number}
+              </p>
+              <p className="mb-0">
+                <strong>Номи:</strong> {selectedPatent.title}
+              </p>
+            </div>
+          </Modal.Body>
+        )}
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowApproveModal(false)}
+            disabled={submitting}
+          >
+            Бекор қилиш
+          </Button>
+          <Button variant="success" onClick={confirmApprove} disabled={submitting}>
+            {submitting ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Тасдиқланмоқда...
+              </>
+            ) : (
+              <>
+                <FaCheck className="me-2" />
+                Ҳа, тасдиқлаш
+              </>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Reject Confirmation Modal */}
+      <Modal 
+        show={showRejectModal} 
+        onHide={() => !submitting && setShowRejectModal(false)}
+        centered
+        backdrop={submitting ? 'static' : true}
+        keyboard={!submitting}
+      >
+        <Modal.Header closeButton={!submitting} className="bg-warning text-dark">
+          <Modal.Title>
+            <FaTimes className="me-2" />
+            Рад этиш
+          </Modal.Title>
+        </Modal.Header>
+        {selectedPatent && (
+          <Modal.Body>
+            <Alert variant="warning">
+              <FaExclamationTriangle className="me-2" />
+              Сиз бу патентни рад этмоқчимисиз?
+            </Alert>
+            <div className="bg-light p-3 rounded">
+              <p className="mb-1">
+                <strong>Патент рақами:</strong> {selectedPatent.patent_number}
+              </p>
+              <p className="mb-0">
+                <strong>Номи:</strong> {selectedPatent.title}
+              </p>
+            </div>
+          </Modal.Body>
+        )}
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowRejectModal(false)}
+            disabled={submitting}
+          >
+            Бекор қилиш
+          </Button>
+          <Button variant="warning" onClick={confirmReject} disabled={submitting}>
+            {submitting ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Рад этилмоқда...
+              </>
+            ) : (
+              <>
+                <FaTimes className="me-2" />
+                Ҳа, рад этиш
+              </>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal 
+        show={showDeleteModal} 
+        onHide={() => !submitting && setShowDeleteModal(false)}
+        centered
+        backdrop={submitting ? 'static' : true}
+        keyboard={!submitting}
+      >
+        <Modal.Header closeButton={!submitting} className="bg-danger text-white">
+          <Modal.Title>
+            <FaExclamationTriangle className="me-2" />
+            Ўчиришни тасдиқлаш
+          </Modal.Title>
+        </Modal.Header>
+        {selectedPatent && (
+          <Modal.Body>
+            <Alert variant="danger">
+              <FaExclamationTriangle className="me-2" />
+              Бу амал қайтарилмайди!
+            </Alert>
+            <p>
+              Сиз ҳақиқатан ҳам қуйидаги патентни ўчирмоқчимисиз?
+            </p>
+            <div className="bg-light p-3 rounded">
+              <p className="mb-1">
+                <strong>Патент рақами:</strong> {selectedPatent.patent_number}
+              </p>
+              <p className="mb-0">
+                <strong>Номи:</strong> {selectedPatent.title}
+              </p>
+            </div>
+          </Modal.Body>
+        )}
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowDeleteModal(false)}
+            disabled={submitting}
+          >
+            Бекор қилиш
+          </Button>
+          <Button variant="danger" onClick={confirmDelete} disabled={submitting}>
+            {submitting ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Ўчирилмоқда...
+              </>
+            ) : (
+              <>
+                <FaTrash className="me-2" />
+                Ҳа, ўчириш
+              </>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* User Management Modals */}
+      <AddUserModal
+        show={showAddUserModal}
+        onHide={() => setShowAddUserModal(false)}
+        formData={userFormData}
+        onChange={handleUserFormChange}
+        onSubmit={handleUserFormSubmit}
+        errors={userFormErrors}
+        submitting={submitting}
+      />
+
+      <EditUserModal
+        show={showEditUserModal}
+        onHide={() => {
+          setShowEditUserModal(false)
+          setSelectedUser(null)
+        }}
+        formData={userFormData}
+        onChange={handleUserFormChange}
+        onSubmit={handleUserEditSubmit}
+        errors={userFormErrors}
+        submitting={submitting}
+      />
+
+      <DeleteUserModal
+        show={showDeleteUserModal}
+        onHide={() => {
+          setShowDeleteUserModal(false)
+          setSelectedUser(null)
+        }}
+        user={selectedUser}
+        onConfirm={confirmDeleteUser}
+        submitting={submitting}
+      />
+
+      <ResetPasswordModal
+        show={showResetPasswordModal}
+        onHide={() => {
+          setShowResetPasswordModal(false)
+          setSelectedUser(null)
+          setNewPassword('')
+        }}
+        user={selectedUser}
+        password={newPassword}
+        onPasswordChange={setNewPassword}
+        onConfirm={confirmResetPassword}
+        submitting={submitting}
+      />
+
+      <ActivityLogsModal
+        show={showActivityLogsModal}
+        onHide={() => setShowActivityLogsModal(false)}
+        logs={activityLogs}
+      />
+    </div>
+  )
+}
+
+export default AdminDashboard
