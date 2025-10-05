@@ -11,11 +11,13 @@ export const login = async (username, password, rememberMe = false) => {
     if (data.success && data.user) {
       // Create session data
       const sessionData = {
+        id: data.user.id,
         username: data.user.username,
         role: data.user.role,
         name: data.user.username,
         fullName: data.user.fullName || data.user.institutionName,
         shortName: data.user.institutionName,
+        phoneNumber: data.user.phoneNumber,
         loginTime: new Date().toISOString(),
       }
 
