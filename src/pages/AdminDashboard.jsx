@@ -273,7 +273,14 @@ const AdminDashboard = () => {
 
   const handleUserFormChange = (e) => {
     const { name, value } = e.target
-    setUserFormData(prev => ({ ...prev, [name]: value }))
+    
+    // Convert isActive string to boolean
+    let finalValue = value
+    if (name === 'isActive') {
+      finalValue = value === 'true' || value === true
+    }
+    
+    setUserFormData(prev => ({ ...prev, [name]: finalValue }))
     // Clear error for this field
     if (userFormErrors[name]) {
       setUserFormErrors(prev => ({ ...prev, [name]: '' }))
@@ -377,7 +384,7 @@ const AdminDashboard = () => {
         institutionName: userFormData.institutionName,
         fullName: userFormData.fullName,
         phoneNumber: userFormData.phoneNumber,
-        isActive: userFormData.isActive
+        isActive: userFormData.isActive === true || userFormData.isActive === 'true'
       })
       
       alert('Фойдаланувчи муваффақиятли янгиланди!')

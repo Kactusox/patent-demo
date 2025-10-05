@@ -189,12 +189,12 @@ export const EditUserModal = ({ show, onHide, formData, onChange, onSubmit, erro
                 <Form.Label>Ҳолати</Form.Label>
                 <Form.Select
                   name="isActive"
-                  value={formData.isActive}
+                  value={formData.isActive ? 'true' : 'false'}
                   onChange={onChange}
                   disabled={submitting}
                 >
-                  <option value={true}>Фаол</option>
-                  <option value={false}>Нофаол</option>
+                  <option value="true">Фаол</option>
+                  <option value="false">Нофаол</option>
                 </Form.Select>
               </Form.Group>
             </Col>
