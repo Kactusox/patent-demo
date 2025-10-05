@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev\"",
+    "install:all": "npm install && cd backend && npm install",
+    "start": "npm run dev:full"
   },
   "dependencies": {
     "bootstrap": "^5.3.8",
@@ -16,6 +20,7 @@
     "express": "^5.1.0",
     "file-saver": "^2.0.5",
     "multer": "^2.0.2",
+    "node-fetch": "^3.3.2",
     "react": "^19.1.1",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.1.1",
@@ -29,6 +34,7 @@
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.3",
+    "concurrently": "^8.2.2",
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",

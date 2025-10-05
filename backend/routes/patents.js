@@ -4,6 +4,8 @@ const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
 const { db } = require('../database')
+const { validatePatent, sanitizeInput } = require('../middleware/validation')
+const { asyncHandler, activityLogger } = require('../middleware/errorHandler')
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -120,7 +122,7 @@ router.get('/check-duplicate/:applicationNumber', (req, res) => {
 })
 
 // CREATE new patent
-router.post('/', upload.single('file'), (req, res) => {
+router.post('/', sanitizeInput, validatePatent, upload.single('file'), activityLogger('CREATE_PATENT', 'Yangi patent yaratildi'), asyncHandler(async (req, res) => {
   const {
     patentNumber,
     title,
@@ -150,16 +152,21 @@ router.post('/', upload.single('file'), (req, res) => {
     })
   }
 
-  // Check for duplicate
-  const checkQuery = 'SELECT id FROM patents WHERE application_number = ?'
-  db.get(checkQuery, [applicationNumber], (err, existing) => {
-    if (err) {
-      console.error('Error checking duplicate:', err)
-      return res.status(500).json({ error: 'Текширишда хато' })
-    }
+  try {
+    // Check for duplicate
+    const checkQuery = 'SELECT id FROM patents WHERE application_number = ?'
+    const existing = await new Promise((resolve, reject) => {
+      db.get(checkQuery, [applicationNumber], (err, result) => {
+        if (err) reject(err)
+        else resolve(result)
+      })
+    })
 
     if (existing) {
-      return res.status(409).json({ error: 'Бу талабнома рақами аллақачон мавжуд' })
+      return res.status(409).json({ 
+        success: false,
+        error: 'Бу талабнома рақами аллақачон мавжуд' 
+      })
     }
 
     // Insert patent
@@ -174,35 +181,38 @@ router.post('/', upload.single('file'), (req, res) => {
     const filePath = req.file ? `/uploads/${req.file.filename}` : null
     const fileName = req.file ? req.file.originalname : null
 
-    db.run(query, [
-      patentNumber,
-      title,
-      type,
-      applicationNumber,
-      submissionDate,
-      registrationDate,
-      patentYear,
-      authors,
-      institution,
-      institutionName,
-      'pending', // Default status
-      filePath,
-      fileName,
-      createdBy
-    ], function(err) {
-      if (err) {
-        console.error('Error creating patent:', err)
-        return res.status(500).json({ error: 'Патентни сақлашда хато' })
-      }
-
-      res.status(201).json({
-        success: true,
-        message: 'Патент муваффақиятли қўшилди',
-        patentId: this.lastID
+    const result = await new Promise((resolve, reject) => {
+      db.run(query, [
+        patentNumber,
+        title,
+        type,
+        applicationNumber,
+        submissionDate,
+        registrationDate,
+        patentYear,
+        authors,
+        institution,
+        institutionName,
+        'pending', // Default status
+        filePath,
+        fileName,
+        createdBy
+      ], function(err) {
+        if (err) reject(err)
+        else resolve({ id: this.lastID, changes: this.changes })
       })
     })
-  })
-})
+
+    res.status(201).json({
+      success: true,
+      message: 'Патент муваффақиятли қўшилди',
+      patentId: result.id
+    })
+  } catch (error) {
+    console.error('Error creating patent:', error)
+    throw error
+  }
+}))
 
 // UPDATE patent
 router.put('/:id', upload.single('file'), (req, res) => {

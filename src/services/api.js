@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:5001/api'
+const API_BASE_URL = 'http://localhost:5002/api'
 
 // Helper function to make API calls
 export const apiCall = async (endpoint, options = {}) => {
