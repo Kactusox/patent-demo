@@ -54,7 +54,7 @@ const LoginPage = () => {
       }
 
       // Attempt login
-      const user = login(formData.username, formData.password, formData.rememberMe)
+      const user = await login(formData.username, formData.password, formData.rememberMe)
 
       // Redirect based on role
       if (user.role === 'admin') {
@@ -63,7 +63,7 @@ const LoginPage = () => {
         navigate('/dashboard', { replace: true })
       }
     } catch (err) {
-      setError(err.message)
+      setError(err.message || 'Тизимга кириш мумкин эмас')
     } finally {
       setLoading(false)
     }
