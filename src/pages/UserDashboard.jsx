@@ -1122,12 +1122,12 @@ const UserDashboard = () => {
 
               <Col xs={12}>
                 <Form.Group>
-                  <Form.Label>Файл (PDF) <span className="text-danger">*</span></Form.Label>
+                  <Form.Label>Файл (PDF, JPG, PNG) <span className="text-danger">*</span></Form.Label>
                   <Form.Control
                     type="file"
                     name="file"
                     onChange={handleFormChange}
-                    accept=".pdf"
+                    accept=".pdf,.jpg,.jpeg,.png"
                     isInvalid={!!formErrors.file}
                     disabled={submitting}
                   />
@@ -1135,7 +1135,7 @@ const UserDashboard = () => {
                     {formErrors.file}
                   </Form.Control.Feedback>
                   <Form.Text className="text-muted">
-                    Фақат PDF форматидаги файлларни юкланг
+                    PDF, JPG ёки PNG форматидаги файлларни юкланг
                   </Form.Text>
                 </Form.Group>
               </Col>
@@ -1350,11 +1350,11 @@ const UserDashboard = () => {
                     type="file"
                     name="file"
                     onChange={handleFormChange}
-                    accept=".pdf"
+                    accept=".pdf,.jpg,.jpeg,.png"
                     disabled={submitting}
                   />
                   <Form.Text className="text-muted">
-                    Файлни алмаштириш учун янгисини юкланг
+                    Файлни алмаштириш учун янгисини юкланг (PDF, JPG, PNG)
                   </Form.Text>
                 </Form.Group>
               </Col>

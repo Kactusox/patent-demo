@@ -24,10 +24,11 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']
+    if (allowedTypes.includes(file.mimetype)) {
       cb(null, true)
     } else {
-      cb(new Error('Фақат PDF файлларни юклаш мумкин'))
+      cb(new Error('Фақат PDF, JPG, PNG файлларни юклаш мумкин'))
     }
   }
 })
