@@ -9,6 +9,7 @@ import { getCurrentUser } from '../utils/auth'
 import { logout } from '../services/authService'
 import { 
   getAllPatents, 
+  createPatent,
   deletePatent, 
   approvePatent, 
   rejectPatent,
@@ -24,7 +25,7 @@ import {
   getActivityLogs
 } from '../services/userService'
 import { downloadZipFile, exportToExcel, getExportStats } from '../services/exportService'
-import { INSTITUTION_INFO } from '../utils/patentData'
+import { INSTITUTION_INFO, PATENT_TYPES } from '../utils/patentData'
 import { 
   AddUserModal, 
   EditUserModal, 
@@ -41,6 +42,7 @@ const AdminDashboard = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showApproveModal, setShowApproveModal] = useState(false)
   const [showRejectModal, setShowRejectModal] = useState(false)
+  const [showAddPatentModal, setShowAddPatentModal] = useState(false)
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterInstitution, setFilterInstitution] = useState('all')
   const [loading, setLoading] = useState(false)
@@ -78,6 +80,21 @@ const AdminDashboard = () => {
   })
   const [userFormErrors, setUserFormErrors] = useState({})
   const [newPassword, setNewPassword] = useState('')
+  
+  // Add patent form state
+  const [patentFormData, setPatentFormData] = useState({
+    patentNumber: '',
+    title: '',
+    type: '',
+    applicationNumber: '',
+    submissionDate: '',
+    registrationDate: '',
+    year: new Date().getFullYear(),
+    authors: '',
+    institution: 'neftgaz',
+    file: null
+  })
+  const [patentFormErrors, setPatentFormErrors] = useState({})
   
   const currentUser = getCurrentUser()
 
@@ -438,6 +455,125 @@ const AdminDashboard = () => {
     }
   }
 
+  // ========================================
+  // PATENT MANAGEMENT HANDLERS (Admin)
+  // ========================================
+
+  const handleAddPatent = () => {
+    setPatentFormData({
+      patentNumber: '',
+      title: '',
+      type: '',
+      applicationNumber: '',
+      submissionDate: '',
+      registrationDate: '',
+      year: new Date().getFullYear(),
+      authors: '',
+      institution: 'neftgaz',
+      file: null
+    })
+    setPatentFormErrors({})
+    setShowAddPatentModal(true)
+  }
+
+  const handlePatentFormChange = (e) => {
+    const { name, value, files } = e.target
+    
+    if (name === 'file') {
+      setPatentFormData(prev => ({ ...prev, file: files[0] }))
+    } else {
+      setPatentFormData(prev => ({ ...prev, [name]: value }))
+    }
+    
+    // Clear error for this field
+    if (patentFormErrors[name]) {
+      setPatentFormErrors(prev => ({ ...prev, [name]: '' }))
+    }
+  }
+
+  const validatePatentForm = () => {
+    const errors = {}
+    
+    if (!patentFormData.patentNumber.trim()) {
+      errors.patentNumber = 'Патент рақамини киритинг'
+    }
+    if (!patentFormData.title.trim()) {
+      errors.title = 'Ихтиро номини киритинг'
+    }
+    if (!patentFormData.type) {
+      errors.type = 'Турини танланг'
+    }
+    if (!patentFormData.applicationNumber.trim()) {
+      errors.applicationNumber = 'Талабнома рақамини киритинг'
+    }
+    if (!patentFormData.submissionDate) {
+      errors.submissionDate = 'Топширилган санани киритинг'
+    }
+    if (!patentFormData.registrationDate) {
+      errors.registrationDate = 'Рўйхатдан ўтказилган санани киритинг'
+    }
+    if (!patentFormData.year) {
+      errors.year = 'Йилни танланг'
+    }
+    const currentYear = new Date().getFullYear()
+    if (patentFormData.year && (patentFormData.year < 2000 || patentFormData.year > currentYear)) {
+      errors.year = `Йил 2000 дан ${currentYear} гача бўлиши керак`
+    }
+    if (!patentFormData.authors.trim()) {
+      errors.authors = 'Камида битта муаллиф киритинг'
+    }
+    if (!patentFormData.institution) {
+      errors.institution = 'Муассасани танланг'
+    }
+    if (!patentFormData.file) {
+      errors.file = 'Файлни юкланг'
+    }
+
+    setPatentFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  const handlePatentFormSubmit = async (e) => {
+    e.preventDefault()
+    
+    if (!validatePatentForm()) {
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const institutionInfo = INSTITUTION_INFO[patentFormData.institution]
+      
+      const patentData = {
+        patentNumber: patentFormData.patentNumber,
+        title: patentFormData.title,
+        type: patentFormData.type,
+        applicationNumber: patentFormData.applicationNumber,
+        submissionDate: patentFormData.submissionDate,
+        registrationDate: patentFormData.registrationDate,
+        year: patentFormData.year,
+        authors: patentFormData.authors,
+        institution: patentFormData.institution,
+        institutionName: institutionInfo?.fullName || institutionInfo?.shortName,
+        createdBy: currentUser.username
+      }
+
+      await createPatent(patentData, patentFormData.file)
+      alert('Патент муваффақиятли қўшилди!')
+      
+      // Reload patents and stats
+      await loadPatents()
+      await loadStatistics()
+      
+      setShowAddPatentModal(false)
+    } catch (error) {
+      console.error('Error adding patent:', error)
+      alert('Хато: ' + error.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   // Filter patents
   const getFilteredPatents = () => {
     let filtered = patents
@@ -761,6 +897,15 @@ const AdminDashboard = () => {
                   <Row className="mt-3">
                     <Col>
                       <div className="d-flex gap-2 align-items-center">
+                        <Button 
+                          variant="primary" 
+                          size="sm"
+                          onClick={handleAddPatent}
+                        >
+                          <FaPlus className="me-2" />
+                          Патент қўшиш
+                        </Button>
+                        
                         <Button 
                           variant="success" 
                           size="sm"
@@ -1487,6 +1632,246 @@ const AdminDashboard = () => {
         onHide={() => setShowActivityLogsModal(false)}
         logs={activityLogs}
       />
+
+      {/* Add Patent Modal (Admin) */}
+      <Modal 
+        show={showAddPatentModal} 
+        onHide={() => {
+          if (!submitting) {
+            setShowAddPatentModal(false)
+          }
+        }}
+        size="lg"
+        backdrop={submitting ? 'static' : true}
+        keyboard={!submitting}
+      >
+        <Modal.Header closeButton={!submitting} className="bg-primary text-white">
+          <Modal.Title>
+            <FaPlus className="me-2" />
+            Янги патент қўшиш (Админ)
+          </Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handlePatentFormSubmit}>
+          <Modal.Body>
+            <Row className="g-3">
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>Патент рақами <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="patentNumber"
+                    value={patentFormData.patentNumber}
+                    onChange={handlePatentFormChange}
+                    isInvalid={!!patentFormErrors.patentNumber}
+                    placeholder="FAP 2745"
+                    disabled={submitting}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {patentFormErrors.patentNumber}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>Талабнома рақами <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="applicationNumber"
+                    value={patentFormData.applicationNumber}
+                    onChange={handlePatentFormChange}
+                    isInvalid={!!patentFormErrors.applicationNumber}
+                    placeholder="FAP 20240425"
+                    disabled={submitting}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {patentFormErrors.applicationNumber}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col xs={12}>
+                <Form.Group>
+                  <Form.Label>Ихтиро номи <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={2}
+                    name="title"
+                    value={patentFormData.title}
+                    onChange={handlePatentFormChange}
+                    isInvalid={!!patentFormErrors.title}
+                    placeholder="Патент номини киритинг"
+                    disabled={submitting}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {patentFormErrors.title}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>Тури <span className="text-danger">*</span></Form.Label>
+                  <Form.Select
+                    name="type"
+                    value={patentFormData.type}
+                    onChange={handlePatentFormChange}
+                    isInvalid={!!patentFormErrors.type}
+                    disabled={submitting}
+                  >
+                    <option value="">Турини танланг</option>
+                    {PATENT_TYPES.map((type, idx) => (
+                      <option key={idx} value={type}>{type}</option>
+                    ))}
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    {patentFormErrors.type}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>Муассаса <span className="text-danger">*</span></Form.Label>
+                  <Form.Select
+                    name="institution"
+                    value={patentFormData.institution}
+                    onChange={handlePatentFormChange}
+                    isInvalid={!!patentFormErrors.institution}
+                    disabled={submitting}
+                  >
+                    <option value="neftgaz">Нефт ва газ институти</option>
+                    <option value="mineral">Минерал ресурслар институти</option>
+                    <option value="gidro">Гидрогеология институти</option>
+                    <option value="geofizika">Геофизика институти</option>
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid">
+                    {patentFormErrors.institution}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Йил <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="year"
+                    value={patentFormData.year}
+                    onChange={handlePatentFormChange}
+                    isInvalid={!!patentFormErrors.year}
+                    disabled={submitting}
+                    min="2000"
+                    max={new Date().getFullYear()}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {patentFormErrors.year}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Топширилган сана <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="submissionDate"
+                    value={patentFormData.submissionDate}
+                    onChange={handlePatentFormChange}
+                    isInvalid={!!patentFormErrors.submissionDate}
+                    disabled={submitting}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {patentFormErrors.submissionDate}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label>Рўйхатдан ўтган сана <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="registrationDate"
+                    value={patentFormData.registrationDate}
+                    onChange={handlePatentFormChange}
+                    isInvalid={!!patentFormErrors.registrationDate}
+                    disabled={submitting}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {patentFormErrors.registrationDate}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+
+              <Col xs={12}>
+                <Form.Group>
+                  <Form.Label>Муаллифлар <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    name="authors"
+                    value={patentFormData.authors}
+                    onChange={handlePatentFormChange}
+                    isInvalid={!!patentFormErrors.authors}
+                    placeholder="Муаллифларни нуқтали вергул (;) билан ажратинг"
+                    disabled={submitting}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {patentFormErrors.authors}
+                  </Form.Control.Feedback>
+                  <Form.Text className="text-muted">
+                    Бир неча муаллифларни нуқтали вергул (;) билан ажратинг
+                  </Form.Text>
+                </Form.Group>
+              </Col>
+
+              <Col xs={12}>
+                <Form.Group>
+                  <Form.Label>Файл (PDF, JPG, PNG) <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="file"
+                    name="file"
+                    onChange={handlePatentFormChange}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    isInvalid={!!patentFormErrors.file}
+                    disabled={submitting}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {patentFormErrors.file}
+                  </Form.Control.Feedback>
+                  <Form.Text className="text-muted">
+                    PDF, JPG ёки PNG форматидаги файлларни юкланг
+                  </Form.Text>
+                </Form.Group>
+              </Col>
+            </Row>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowAddPatentModal(false)}
+              disabled={submitting}
+            >
+              <FaTimes className="me-2" />
+              Бекор қилиш
+            </Button>
+            <Button variant="primary" type="submit" disabled={submitting}>
+              {submitting ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  Сақланмоқда...
+                </>
+              ) : (
+                <>
+                  <FaPlus className="me-2" />
+                  Қўшиш
+                </>
+              )}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
     </div>
   )
 }
