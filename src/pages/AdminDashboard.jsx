@@ -652,7 +652,8 @@ const AdminDashboard = () => {
         <div className="sidebar-header">
           <div className="sidebar-brand">
             <div className="sidebar-brand-icon">
-              <FaShieldAlt />
+              {/* <FaShieldAlt /> */}
+              <img src='src/images/logo.png' alt="Logo" className="sidebar-logo" />
             </div>
             <div className="sidebar-brand-text">
               <h5>Админ Панели</h5>

@@ -535,7 +535,7 @@ const UserDashboard = () => {
               {/* Welcome Card */}
               <Card className="border-0 shadow-sm mb-4">
                 <Card.Body className="p-4">
-                  <h5 className="fw-bold mb-3">Марҳабо!</h5>
+                  <h5 className="fw-bold mb-3">Салом!</h5>
                   <p className="mb-3">
                     Сиз патент бошқарув тизимига муваффақиятли кирдингиз. 
                     Бу ерда сиз ўз ҳужжатларингизни бошқаришингиз, янги патентлар қўшишингиз ва мавжуд маълумотларни кўришингиз мумкин.
