@@ -152,24 +152,30 @@ const UserDashboard = () => {
 
   const validateForm = () => {
     const errors = {}
+    const isCopyright = formData.type === 'Муаллифлик ҳуқуқи'
     
     if (!formData.patentNumber.trim()) {
-      errors.patentNumber = 'Патент рақамини киритинг'
+      errors.patentNumber = isCopyright ? 'Гувоҳнома рақамини киритинг' : 'Патент рақамини киритинг'
     }
     if (!formData.title.trim()) {
-      errors.title = 'Ихтиро номини киритинг'
+      errors.title = isCopyright ? 'Муаллифлик ҳуқуқи номини киритинг' : 'Ихтиро номини киритинг'
     }
     if (!formData.type) {
       errors.type = 'Турини танланг'
     }
-    if (!formData.applicationNumber.trim()) {
+    
+    // Application number only for non-copyright types
+    if (!isCopyright && !formData.applicationNumber.trim()) {
       errors.applicationNumber = 'Талабнома рақамини киритинг'
     }
-    if (!formData.submissionDate) {
+    
+    // Submission date only for non-copyright types
+    if (!isCopyright && !formData.submissionDate) {
       errors.submissionDate = 'Топширилган санани киритинг'
     }
+    
     if (!formData.registrationDate) {
-      errors.registrationDate = 'Рўйхатдан ўтказилган санани киритинг'
+      errors.registrationDate = isCopyright ? 'Реестрга киритилган санани киритинг' : 'Рўйхатдан ўтказилган санани киритинг'
     }
     if (!formData.year) {
       errors.year = 'Йилни танланг'
@@ -966,65 +972,8 @@ const UserDashboard = () => {
             )}
             
             <Row className="g-3">
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>Патент рақами <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="patentNumber"
-                    value={formData.patentNumber}
-                    onChange={handleFormChange}
-                    isInvalid={!!formErrors.patentNumber}
-                    placeholder="FAP 2745"
-                    disabled={submitting}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {formErrors.patentNumber}
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </Col>
-              
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>Талабнома рақами <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="applicationNumber"
-                    value={formData.applicationNumber}
-                    onChange={handleFormChange}
-                    isInvalid={!!formErrors.applicationNumber}
-                    placeholder="FAP 20240425"
-                    disabled={submitting}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {formErrors.applicationNumber}
-                  </Form.Control.Feedback>
-                  <Form.Text className="text-muted">
-                    Дубликатларни текшириш учун ишлатилади
-                  </Form.Text>
-                </Form.Group>
-              </Col>
-
+              {/* Type Selection - Always First */}
               <Col xs={12}>
-                <Form.Group>
-                  <Form.Label>Ихтиро номи <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={2}
-                    name="title"
-                    value={formData.title}
-                    onChange={handleFormChange}
-                    isInvalid={!!formErrors.title}
-                    placeholder="Патент номини киритинг"
-                    disabled={submitting}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {formErrors.title}
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </Col>
-
-              <Col md={6}>
                 <Form.Group>
                   <Form.Label>Тури <span className="text-danger">*</span></Form.Label>
                   <Form.Select
@@ -1045,80 +994,242 @@ const UserDashboard = () => {
                 </Form.Group>
               </Col>
 
-              <Col md={2}>
-                <Form.Group>
-                  <Form.Label>Йил <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="year"
-                    value={formData.year}
-                    onChange={handleFormChange}
-                    isInvalid={!!formErrors.year}
-                    disabled={submitting}
-                    min="2000"
-                    max={new Date().getFullYear()}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {formErrors.year}
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </Col>
+              {/* Conditional Fields based on Type */}
+              {formData.type === 'Муаллифлик ҳуқуқи' ? (
+                <>
+                  {/* Copyright Fields */}
+                  <Col xs={12}>
+                    <Form.Group>
+                      <Form.Label>Гувоҳнома рақами <span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="patentNumber"
+                        value={formData.patentNumber}
+                        onChange={handleFormChange}
+                        isInvalid={!!formErrors.patentNumber}
+                        placeholder="№ 008647"
+                        disabled={submitting}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {formErrors.patentNumber}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
 
-              <Col md={2}>
-                <Form.Group>
-                  <Form.Label>Топширилган сана <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    type="date"
-                    name="submissionDate"
-                    value={formData.submissionDate}
-                    onChange={handleFormChange}
-                    isInvalid={!!formErrors.submissionDate}
-                    disabled={submitting}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {formErrors.submissionDate}
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </Col>
+                  <Col xs={12}>
+                    <Form.Group>
+                      <Form.Label>Муаллифлик ҳуқуқи номи <span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={2}
+                        name="title"
+                        value={formData.title}
+                        onChange={handleFormChange}
+                        isInvalid={!!formErrors.title}
+                        placeholder="Муаллифлик ҳуқуқи номини киритинг"
+                        disabled={submitting}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {formErrors.title}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
 
-              <Col md={2}>
-                <Form.Group>
-                  <Form.Label>Рўйхатдан ўтган сана <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    type="date"
-                    name="registrationDate"
-                    value={formData.registrationDate}
-                    onChange={handleFormChange}
-                    isInvalid={!!formErrors.registrationDate}
-                    disabled={submitting}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {formErrors.registrationDate}
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </Col>
+                  <Col xs={12}>
+                    <Form.Group>
+                      <Form.Label>Муаллифлик ҳуқуқи муаллиф(лар)и <span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={3}
+                        name="authors"
+                        value={formData.authors}
+                        onChange={handleFormChange}
+                        isInvalid={!!formErrors.authors}
+                        placeholder="Масалан: Qarshiyev Odash (25%), Yevseyeva Galina (20%), Tokareva Kseniya (20%)"
+                        disabled={submitting}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {formErrors.authors}
+                      </Form.Control.Feedback>
+                      <Form.Text className="text-muted">
+                        Муаллифларни фоиз улушлари билан киритинг
+                      </Form.Text>
+                    </Form.Group>
+                  </Col>
 
-              <Col xs={12}>
-                <Form.Group>
-                  <Form.Label>Муаллифлар <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    name="authors"
-                    value={formData.authors}
-                    onChange={handleFormChange}
-                    isInvalid={!!formErrors.authors}
-                    placeholder="Муаллифларни нуқтали вергул (;) билан ажратинг. Масалан: ISOQOV MAQSUD UZOQOVICH; TURAMURATOV ILXOMBAY BEKCHANOVICH"
-                    disabled={submitting}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    {formErrors.authors}
-                  </Form.Control.Feedback>
-                  <Form.Text className="text-muted">
-                    Бир неча муаллифларни нуқтали вергул (;) билан ажратинг
-                  </Form.Text>
-                </Form.Group>
-              </Col>
+                  <Col md={6}>
+                    <Form.Group>
+                      <Form.Label>Реестрга киритилган сана <span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        type="date"
+                        name="registrationDate"
+                        value={formData.registrationDate}
+                        onChange={handleFormChange}
+                        isInvalid={!!formErrors.registrationDate}
+                        disabled={submitting}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {formErrors.registrationDate}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+
+                  <Col md={6}>
+                    <Form.Group>
+                      <Form.Label>Йил <span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="year"
+                        value={formData.year}
+                        onChange={handleFormChange}
+                        isInvalid={!!formErrors.year}
+                        disabled={submitting}
+                        min="2000"
+                        max={new Date().getFullYear()}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {formErrors.year}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                </>
+              ) : formData.type ? (
+                <>
+                  {/* Regular Patent Fields */}
+                  <Col md={6}>
+                    <Form.Group>
+                      <Form.Label>Патент рақами <span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="patentNumber"
+                        value={formData.patentNumber}
+                        onChange={handleFormChange}
+                        isInvalid={!!formErrors.patentNumber}
+                        placeholder="FAP 2745"
+                        disabled={submitting}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {formErrors.patentNumber}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+                  
+                  <Col md={6}>
+                    <Form.Group>
+                      <Form.Label>Талабнома рақами <span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        type="text"
+                        name="applicationNumber"
+                        value={formData.applicationNumber}
+                        onChange={handleFormChange}
+                        isInvalid={!!formErrors.applicationNumber}
+                        placeholder="FAP 20240425"
+                        disabled={submitting}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {formErrors.applicationNumber}
+                      </Form.Control.Feedback>
+                      <Form.Text className="text-muted">
+                        Дубликатларни текшириш учун ишлатилади
+                      </Form.Text>
+                    </Form.Group>
+                  </Col>
+
+                  <Col xs={12}>
+                    <Form.Group>
+                      <Form.Label>Ихтиро номи <span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={2}
+                        name="title"
+                        value={formData.title}
+                        onChange={handleFormChange}
+                        isInvalid={!!formErrors.title}
+                        placeholder="Патент номини киритинг"
+                        disabled={submitting}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {formErrors.title}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+
+                  <Col md={4}>
+                    <Form.Group>
+                      <Form.Label>Йил <span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="year"
+                        value={formData.year}
+                        onChange={handleFormChange}
+                        isInvalid={!!formErrors.year}
+                        disabled={submitting}
+                        min="2000"
+                        max={new Date().getFullYear()}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {formErrors.year}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+
+                  <Col md={4}>
+                    <Form.Group>
+                      <Form.Label>Топширилган сана <span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        type="date"
+                        name="submissionDate"
+                        value={formData.submissionDate}
+                        onChange={handleFormChange}
+                        isInvalid={!!formErrors.submissionDate}
+                        disabled={submitting}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {formErrors.submissionDate}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+
+                  <Col md={4}>
+                    <Form.Group>
+                      <Form.Label>Рўйхатдан ўтган сана <span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        type="date"
+                        name="registrationDate"
+                        value={formData.registrationDate}
+                        onChange={handleFormChange}
+                        isInvalid={!!formErrors.registrationDate}
+                        disabled={submitting}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {formErrors.registrationDate}
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                  </Col>
+
+                  <Col xs={12}>
+                    <Form.Group>
+                      <Form.Label>Муаллифлар <span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={3}
+                        name="authors"
+                        value={formData.authors}
+                        onChange={handleFormChange}
+                        isInvalid={!!formErrors.authors}
+                        placeholder="Муаллифларни нуқтали вергул (;) билан ажратинг"
+                        disabled={submitting}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {formErrors.authors}
+                      </Form.Control.Feedback>
+                      <Form.Text className="text-muted">
+                        Бир неча муаллифларни нуқтали вергул (;) билан ажратинг
+                      </Form.Text>
+                    </Form.Group>
+                  </Col>
+                </>
+              ) : null}
 
               <Col xs={12}>
                 <Form.Group>
