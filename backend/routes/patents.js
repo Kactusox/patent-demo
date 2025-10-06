@@ -136,9 +136,17 @@ router.post('/', upload.single('file'), (req, res) => {
     createdBy
   } = req.body
 
-  // Validation
-  if (!patentNumber || !title || !type || !applicationNumber || !submissionDate || !registrationDate || !authors || !year) {
+  // Check if it's copyright type
+  const isCopyright = type === 'Муаллифлик ҳуқуқи'
+
+  // Common validation for all types
+  if (!patentNumber || !title || !type || !registrationDate || !authors || !year) {
     return res.status(400).json({ error: 'Барча майдонларни тўлдиринг' })
+  }
+
+  // Additional validation only for non-copyright types
+  if (!isCopyright && (!applicationNumber || !submissionDate)) {
+    return res.status(400).json({ error: 'Талабнома рақами ва топширилган сана керак' })
   }
 
   // Validate year
@@ -151,16 +159,23 @@ router.post('/', upload.single('file'), (req, res) => {
     })
   }
 
-  // Check for duplicate
-  const checkQuery = 'SELECT id FROM patents WHERE application_number = ?'
-  db.get(checkQuery, [applicationNumber], (err, existing) => {
+  // Check for duplicate (only for non-copyright types with application numbers)
+  const checkQuery = isCopyright 
+    ? 'SELECT id FROM patents WHERE patent_number = ?'
+    : 'SELECT id FROM patents WHERE application_number = ?'
+  const checkValue = isCopyright ? patentNumber : applicationNumber
+  
+  db.get(checkQuery, [checkValue], (err, existing) => {
     if (err) {
       console.error('Error checking duplicate:', err)
       return res.status(500).json({ error: 'Текширишда хато' })
     }
 
     if (existing) {
-      return res.status(409).json({ error: 'Бу талабнома рақами аллақачон мавжуд' })
+      const errorMsg = isCopyright 
+        ? 'Бу гувоҳнома рақами аллақачон мавжуд'
+        : 'Бу талабнома рақами аллақачон мавжуд'
+      return res.status(409).json({ error: errorMsg })
     }
 
     // Insert patent
@@ -179,8 +194,8 @@ router.post('/', upload.single('file'), (req, res) => {
       patentNumber,
       title,
       type,
-      applicationNumber,
-      submissionDate,
+      isCopyright ? null : applicationNumber,  // NULL for copyright
+      isCopyright ? null : submissionDate,     // NULL for copyright
       registrationDate,
       patentYear,
       authors,
@@ -217,6 +232,9 @@ router.put('/:id', upload.single('file'), (req, res) => {
     authors
   } = req.body
 
+  // Check if it's copyright type
+  const isCopyright = type === 'Муаллифлик ҳуқуқи'
+
   // Validate year if provided
   if (year) {
     const currentYear = new Date().getFullYear()
@@ -234,7 +252,15 @@ router.put('/:id', upload.single('file'), (req, res) => {
     SET patent_number = ?, title = ?, type = ?, submission_date = ?,
         registration_date = ?, year = ?, authors = ?, updated_at = CURRENT_TIMESTAMP
   `
-  const params = [patentNumber, title, type, submissionDate, registrationDate, year, authors]
+  const params = [
+    patentNumber, 
+    title, 
+    type, 
+    isCopyright ? null : submissionDate,  // NULL for copyright
+    registrationDate, 
+    year, 
+    authors
+  ]
 
   // If new file is uploaded
   if (req.file) {

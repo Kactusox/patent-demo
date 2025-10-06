@@ -143,7 +143,15 @@ const UserDashboard = () => {
     const { name, value, files } = e.target
     
     if (name === 'file') {
-      setFormData(prev => ({ ...prev, file: files[0] }))
+      if (files[0]) {
+        const maxSize = 10 * 1024 * 1024 // 10MB
+        if (files[0].size > maxSize) {
+          alert('⚠️ Файл ҳажми 10MB дан кичик бўлиши керак!')
+          e.target.value = '' // Clear input
+          return
+        }
+        setFormData(prev => ({ ...prev, file: files[0] }))
+      }
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
     }
