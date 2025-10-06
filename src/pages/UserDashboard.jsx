@@ -19,6 +19,20 @@ import { changePassword } from '../services/userService'
 import { downloadZipFile, exportToExcel, getExportStats } from '../services/exportService'
 import { PATENT_TYPES } from '../utils/patentData'
 
+// Import institution logos
+import neftgazLogo from '../images/neftgazlogo.png'
+import mineralLogo from '../images/mrilogo.jpg'
+import gidroLogo from '../images/gidrologo.webp'
+import geofizikaLogo from '../images/ggilogo.png'
+
+// Institution logo mapping
+const INSTITUTION_LOGOS = {
+  neftgaz: neftgazLogo,
+  mineral: mineralLogo,
+  gidro: gidroLogo,
+  geofizika: geofizikaLogo
+}
+
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
@@ -419,7 +433,15 @@ const UserDashboard = () => {
           <div className="sidebar-brand">
             <div className="sidebar-brand-icon">
               {/* <FaBuilding /> */}
-              <img src='src/images/neftgazlogo.png' alt="Logo" className="sidebar-logo" />
+              {INSTITUTION_LOGOS[currentUser?.name] ? (
+                <img 
+                  src={INSTITUTION_LOGOS[currentUser?.name]} 
+                  alt={`${currentUser?.fullName} Logo`} 
+                  className="sidebar-logo" 
+                />
+              ) : (
+                <FaBuilding />
+              )}
             </div>
             <div className="sidebar-brand-text">
               <h5>Институт Панели</h5>
