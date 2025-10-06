@@ -21,8 +21,8 @@ import { PATENT_TYPES } from '../utils/patentData'
 
 // Import institution logos
 import neftgazLogo from '../images/neftgazlogo.png'
-import mineralLogo from '../images/minerallogo.png'
-import gidroLogo from '../images/gidrologo.png'
+import mineralLogo from '../images/mrilogo.png'
+import gidroLogo from '../images/gidrologo.webp'
 import geofizikaLogo from '../images/geofizikalogo.png'
 
 // Institution logo mapping
