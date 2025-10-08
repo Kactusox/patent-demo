@@ -3,7 +3,7 @@ import { Row, Col, Card, Button, Badge, Table, Form, InputGroup, Modal, Alert, S
 import { 
   FaHome, FaUsers, FaFileAlt, FaCog, FaSignOutAlt, FaShieldAlt, 
   FaChartBar, FaCheckCircle, FaBuilding, FaSearch, FaEye, FaTrash,
-  FaDownload, FaClock, FaTimes, FaPlus, FaEdit, FaExclamationTriangle, FaCheck, FaKey
+  FaDownload, FaClock, FaTimes, FaPlus, FaEdit, FaExclamationTriangle, FaCheck, FaKey, FaBook
 } from 'react-icons/fa'
 import { getCurrentUser } from '../utils/auth'
 import { logout } from '../services/authService'
@@ -33,6 +33,7 @@ import {
   ResetPasswordModal,
   ActivityLogsModal 
 } from '../components/UserManagementModals'
+import PublicationsDashboard from './PublicationsDashboard'
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
@@ -703,6 +704,16 @@ const AdminDashboard = () => {
           <div className="nav-item">
             <a 
               href="#" 
+              className={`nav-link ${activeTab === 'publications' ? 'active' : ''}`}
+              onClick={(e) => { e.preventDefault(); setActiveTab('publications'); }}
+            >
+              <FaBook className="nav-icon" />
+              <span>Илмий мақолалар</span>
+            </a>
+          </div>
+          <div className="nav-item">
+            <a 
+              href="#" 
               className={`nav-link ${activeTab === 'users' ? 'active' : ''}`}
               onClick={(e) => { e.preventDefault(); setActiveTab('users'); }}
             >
@@ -1231,6 +1242,11 @@ const AdminDashboard = () => {
                 </Card.Body>
               </Card>
             </>
+          )}
+
+          {/* PUBLICATIONS TAB */}
+          {activeTab === 'publications' && (
+            <PublicationsDashboard />
           )}
 
           {/* SETTINGS TAB */}
