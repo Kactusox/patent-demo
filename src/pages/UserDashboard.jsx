@@ -19,6 +19,8 @@ import { changePassword } from '../services/userService'
 import { downloadZipFile, exportToExcel, getExportStats } from '../services/exportService'
 import { PATENT_TYPES } from '../utils/patentData'
 import PublicationsDashboard from './PublicationsDashboard'
+import { getPublicationStats, getAllPublications } from '../services/publicationService'
+import { formatCitations } from '../utils/publicationData'
 
 // Import institution logos
 import neftgazLogo from '../images/neftgazlogo.png'
@@ -73,13 +75,33 @@ const UserDashboard = () => {
   // Export state
   const [exportStats, setExportStats] = useState(null)
   const [exportLoading, setExportLoading] = useState(false)
+  
+  // Publications state
+  const [publications, setPublications] = useState([])
+  const [publicationStats, setPublicationStats] = useState({})
 
   const currentUser = getCurrentUser()
   
   // Load patents on mount
   useEffect(() => {
     loadPatents()
+    loadPublicationsData()
   }, [])
+  
+  // Load publications data
+  const loadPublicationsData = async () => {
+    try {
+      const institution = currentUser.name
+      const [pubsData, statsData] = await Promise.all([
+        getAllPublications({ institution }),
+        getPublicationStats(institution)
+      ])
+      setPublications(pubsData)
+      setPublicationStats(statsData)
+    } catch (error) {
+      console.error('Error loading publications:', error)
+    }
+  }
   
   // Load export stats when documents tab is active
   useEffect(() => {
@@ -112,7 +134,7 @@ const UserDashboard = () => {
 
   const stats = [
     { 
-      label: 'Жами ҳужжатлар', 
+      label: 'Жами патентлар', 
       value: patents.length.toString(), 
       icon: FaFileAlt, 
       color: '#0d6efd',
@@ -126,11 +148,18 @@ const UserDashboard = () => {
       bgColor: '#d1f7e5'
     },
     { 
-      label: 'Кутилмоқда', 
-      value: patents.filter(p => p.status === 'pending').length.toString(), 
+      label: 'Илмий мақолалар', 
+      value: (publicationStats.total || 0).toString(), 
+      icon: FaBook, 
+      color: '#6f42c1',
+      bgColor: '#f3ebff'
+    },
+    { 
+      label: 'Iqtiboslar', 
+      value: formatCitations(publicationStats.total_citations || 0), 
       icon: FaClock, 
-      color: '#ffc107',
-      bgColor: '#fff3cd'
+      color: '#17a2b8',
+      bgColor: '#d1ecf1'
     }
   ]
 
@@ -556,11 +585,43 @@ const UserDashboard = () => {
           {/* OVERVIEW TAB */}
           {activeTab === 'overview' && (
             <>
+              {/* Hero Section */}
+              <Card className="border-0 shadow-sm mb-4" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+                <Card.Body className="p-4">
+                  <Row className="align-items-center">
+                    <Col md={8}>
+                      <h3 className="fw-bold mb-2">Марҳабо, {currentUser?.fullName}!</h3>
+                      <p className="mb-3 opacity-90">
+                        Патент ва илмий мақолалар бошқарув тизими
+                      </p>
+                    </Col>
+                    <Col md={4} className="text-md-end">
+                      <div className="d-flex gap-2 justify-content-md-end flex-wrap">
+                        <Button 
+                          variant="light"
+                          onClick={() => setShowUploadModal(true)}
+                        >
+                          <FaUpload className="me-2" />
+                          Патент қўшиш
+                        </Button>
+                        <Button 
+                          variant="outline-light"
+                          onClick={() => setActiveTab('publications')}
+                        >
+                          <FaBook className="me-2" />
+                          Мақолалар
+                        </Button>
+                      </div>
+                    </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+
               {/* Statistics Cards */}
               <Row className="g-4 mb-4">
                 {stats.map((stat, idx) => (
-                  <Col key={idx} xs={12} sm={6} lg={4}>
-                    <Card className="stats-card border-0 h-100">
+                  <Col key={idx} xs={12} sm={6} lg={3}>
+                    <Card className="stats-card border-0 h-100 shadow-sm">
                       <Card.Body>
                         <div className="d-flex justify-content-between align-items-center">
                           <div>
@@ -580,32 +641,58 @@ const UserDashboard = () => {
                 ))}
               </Row>
 
-              {/* Welcome Card */}
-              <Card className="border-0 shadow-sm mb-4">
-                <Card.Body className="p-4">
-                  <h5 className="fw-bold mb-3">Марҳабо!</h5>
-                  <p className="mb-3">
-                    Сиз патент бошқарув тизимига муваффақиятли кирдингиз. 
-                    Бу ерда сиз ўз ҳужжатларингизни бошқаришингиз, янги патентлар қўшишингиз ва мавжуд маълумотларни кўришингиз мумкин.
-                  </p>
-                  <div className="d-flex gap-2">
-                    <Button 
-                      variant="primary"
-                      onClick={() => setShowUploadModal(true)}
-                    >
-                      <FaUpload className="me-2" />
-                      Янги ҳужжат қўшиш
-                    </Button>
-                    <Button 
-                      variant="outline-primary"
-                      onClick={() => setActiveTab('documents')}
-                    >
-                      <FaFileAlt className="me-2" />
-                      Ҳужжатларни кўриш
-                    </Button>
-                  </div>
-                </Card.Body>
-              </Card>
+              {/* Quick Stats */}
+              <Row className="g-4 mb-4">
+                <Col md={6}>
+                  <Card className="border-0 shadow-sm h-100">
+                    <Card.Header className="bg-white border-bottom py-3">
+                      <h6 className="mb-0 fw-bold">
+                        <FaFileAlt className="me-2 text-primary" />
+                        Патентлар статистикаси
+                      </h6>
+                    </Card.Header>
+                    <Card.Body>
+                      <div className="d-flex justify-content-between align-items-center mb-3">
+                        <span>Жами:</span>
+                        <Badge bg="primary" className="fs-6">{patents.length}</Badge>
+                      </div>
+                      <div className="d-flex justify-content-between align-items-center mb-3">
+                        <span>Тасдиқланган:</span>
+                        <Badge bg="success" className="fs-6">{patents.filter(p => p.status === 'approved').length}</Badge>
+                      </div>
+                      <div className="d-flex justify-content-between align-items-center">
+                        <span>Кутилмоқда:</span>
+                        <Badge bg="warning" className="fs-6">{patents.filter(p => p.status === 'pending').length}</Badge>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </Col>
+
+                <Col md={6}>
+                  <Card className="border-0 shadow-sm h-100">
+                    <Card.Header className="bg-white border-bottom py-3">
+                      <h6 className="mb-0 fw-bold">
+                        <FaBook className="me-2 text-purple" />
+                        Мақолалар статистикаси
+                      </h6>
+                    </Card.Header>
+                    <Card.Body>
+                      <div className="d-flex justify-content-between align-items-center mb-3">
+                        <span>Жами мақолалар:</span>
+                        <Badge bg="purple" className="fs-6" style={{ backgroundColor: '#6f42c1' }}>{publicationStats.total || 0}</Badge>
+                      </div>
+                      <div className="d-flex justify-content-between align-items-center mb-3">
+                        <span>Жами iqtiboslar:</span>
+                        <Badge bg="info" className="fs-6">{formatCitations(publicationStats.total_citations || 0)}</Badge>
+                      </div>
+                      <div className="d-flex justify-content-between align-items-center">
+                        <span>Ўртача h-индекс:</span>
+                        <Badge bg="warning" className="fs-6">{publicationStats.avg_h_index ? publicationStats.avg_h_index.toFixed(1) : '0.0'}</Badge>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
 
               {/* Recent Documents */}
               <Card className="border-0 shadow-sm">
