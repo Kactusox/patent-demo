@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Container, Row, Col, Card, Table, Badge, Button, Form, Spinner, Nav, Alert } from 'react-bootstrap'
 import { FaBook, FaQuoteRight, FaTrophy, FaUsers, FaPlus, FaDownload, FaFileExcel, FaEye, FaEdit, FaTrash, FaExternalLinkAlt, FaCheck, FaTimes } from 'react-icons/fa'
+import toast, { Toaster } from 'react-hot-toast'
 import { 
   getAllPublications, 
   getPublicationStats, 
@@ -65,15 +66,16 @@ const PublicationsDashboard = () => {
 
   // Handle add publication
   const handleAddPublication = async (publicationData, file) => {
+    const loadingToast = toast.loading('Сақланмоқда...')
     try {
       setSubmitting(true)
       await createPublication(publicationData, file)
       setShowAddModal(false)
       loadData()
-      alert('✅ Мақола муваффақиятли қўшилди!')
+      toast.success('Мақола муваффақиятли қўшилди!', { id: loadingToast })
     } catch (err) {
       console.error('Error adding publication:', err)
-      alert('❌ Хато: ' + err.message)
+      toast.error('Хато: ' + err.message, { id: loadingToast })
     } finally {
       setSubmitting(false)
     }
@@ -83,13 +85,14 @@ const PublicationsDashboard = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Ушбу мақолани ўчиришни хоҳлайсизми?')) return
     
+    const loadingToast = toast.loading('Ўчирилмоқда...')
     try {
       await deletePublication(id)
       loadData()
-      alert('✅ Мақола ўчирилди')
+      toast.success('Мақола ўчирилди', { id: loadingToast })
     } catch (err) {
       console.error('Error deleting publication:', err)
-      alert('❌ Хато: ' + err.message)
+      toast.error('Хато: ' + err.message, { id: loadingToast })
     }
   }
 
@@ -97,13 +100,14 @@ const PublicationsDashboard = () => {
   const handleApprove = async (id) => {
     if (!window.confirm('Ушбу мақолани тасдиқлайсизми?')) return
     
+    const loadingToast = toast.loading('Тасдиқланмоқда...')
     try {
       await approvePublication(id, currentUser.username)
       loadData()
-      alert('✅ Мақола тасдиқланди!')
+      toast.success('Мақола тасдиқланди!', { id: loadingToast })
     } catch (err) {
       console.error('Error approving publication:', err)
-      alert('❌ Хато: ' + err.message)
+      toast.error('Хато: ' + err.message, { id: loadingToast })
     }
   }
 
@@ -111,35 +115,44 @@ const PublicationsDashboard = () => {
   const handleReject = async (id) => {
     if (!window.confirm('Ушбу мақолани рад этасизми?')) return
     
+    const loadingToast = toast.loading('Рад этилмоқда...')
     try {
       await rejectPublication(id)
       loadData()
-      alert('✅ Мақола рад этилди')
+      toast.success('Мақола рад этилди', { id: loadingToast })
     } catch (err) {
       console.error('Error rejecting publication:', err)
-      alert('❌ Хато: ' + err.message)
+      toast.error('Хато: ' + err.message, { id: loadingToast })
     }
   }
 
   // Handle export
   const handleExportZip = async () => {
-    try {
-      const institution = currentUser.role === 'admin' ? 'all' : currentUser.name
-      await downloadPublicationsZip(institution)
-    } catch (err) {
-      console.error('Error downloading ZIP:', err)
-      alert('❌ Хато: ' + err.message)
-    }
+    toast.promise(
+      (async () => {
+        const institution = currentUser.role === 'admin' ? 'all' : currentUser.name
+        await downloadPublicationsZip(institution)
+      })(),
+      {
+        loading: 'ZIP тайёрланмоқда...',
+        success: 'ZIP юкланди!',
+        error: 'Хато юз берди'
+      }
+    )
   }
 
   const handleExportExcel = async () => {
-    try {
-      const institution = currentUser.role === 'admin' ? 'all' : currentUser.name
-      await exportPublicationsToExcel(institution)
-    } catch (err) {
-      console.error('Error exporting Excel:', err)
-      alert('❌ Хато: ' + err.message)
-    }
+    toast.promise(
+      (async () => {
+        const institution = currentUser.role === 'admin' ? 'all' : currentUser.name
+        await exportPublicationsToExcel(institution)
+      })(),
+      {
+        loading: 'Excel тайёрланмоқда...',
+        success: 'Excel юкланди!',
+        error: 'Хато юз берди'
+      }
+    )
   }
 
   // Filter publications
@@ -167,6 +180,7 @@ const PublicationsDashboard = () => {
 
   return (
     <Container fluid className="p-4">
+      <Toaster position="top-right" />
       {/* Header */}
       <Row className="mb-4">
         <Col>
