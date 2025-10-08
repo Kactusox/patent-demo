@@ -54,7 +54,7 @@ const LoginPage = () => {
       }
 
       // Attempt login
-      const user = login(formData.username, formData.password, formData.rememberMe)
+      const user = await login(formData.username, formData.password, formData.rememberMe)
 
       // Redirect based on role
       if (user.role === 'admin') {
