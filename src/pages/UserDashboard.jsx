@@ -33,7 +33,6 @@ const INSTITUTION_LOGOS = {
   geofizika: geofizikaLogo
 }
 
-
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
   const [showUploadModal, setShowUploadModal] = useState(false)
