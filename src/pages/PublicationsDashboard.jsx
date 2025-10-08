@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
 import { Container, Row, Col, Card, Table, Badge, Button, Form, Spinner, Nav, Alert } from 'react-bootstrap'
-import { FaBook, FaQuoteRight, FaTrophy, FaUsers, FaPlus, FaDownload, FaFileExcel, FaEye, FaEdit, FaTrash, FaExternalLinkAlt } from 'react-icons/fa'
+import { FaBook, FaQuoteRight, FaTrophy, FaUsers, FaPlus, FaDownload, FaFileExcel, FaEye, FaEdit, FaTrash, FaExternalLinkAlt, FaCheck, FaTimes } from 'react-icons/fa'
 import { 
   getAllPublications, 
   getPublicationStats, 
   getUniqueAuthors,
   createPublication,
   deletePublication,
-  downloadPublicationFile 
+  downloadPublicationFile,
+  approvePublication,
+  rejectPublication 
 } from '../services/publicationService'
 import { formatCitations, getQuartileBadge, getStatusBadge } from '../utils/publicationData'
 import AddPublicationModal from '../components/AddPublicationModal'
@@ -85,6 +87,34 @@ const PublicationsDashboard = () => {
       alert('✅ Мақола ўчирилди')
     } catch (err) {
       console.error('Error deleting publication:', err)
+      alert('❌ Хато: ' + err.message)
+    }
+  }
+
+  // Handle approve publication
+  const handleApprove = async (id) => {
+    if (!window.confirm('Ушбу мақолани тасдиқлайсизми?')) return
+    
+    try {
+      await approvePublication(id, currentUser.username)
+      loadData()
+      alert('✅ Мақола тасдиқланди!')
+    } catch (err) {
+      console.error('Error approving publication:', err)
+      alert('❌ Хато: ' + err.message)
+    }
+  }
+
+  // Handle reject publication
+  const handleReject = async (id) => {
+    if (!window.confirm('Ушбу мақолани рад этасизми?')) return
+    
+    try {
+      await rejectPublication(id)
+      loadData()
+      alert('✅ Мақола рад этилди')
+    } catch (err) {
+      console.error('Error rejecting publication:', err)
       alert('❌ Хато: ' + err.message)
     }
   }
@@ -198,6 +228,36 @@ const PublicationsDashboard = () => {
               </Card>
             </Col>
           </Row>
+
+          {/* Admin Stats - Pending/Approved */}
+          {currentUser.role === 'admin' && (
+            <Row className="g-4 mb-4">
+              <Col md={4}>
+                <Card className="border-0 shadow-sm">
+                  <Card.Body className="text-center">
+                    <Badge bg="success" className="mb-2">Тасдиқланган</Badge>
+                    <h4 className="fw-bold mb-0">{stats.approved || 0}</h4>
+                  </Card.Body>
+                </Card>
+              </Col>
+              <Col md={4}>
+                <Card className="border-0 shadow-sm">
+                  <Card.Body className="text-center">
+                    <Badge bg="warning" className="mb-2">Кутилмоқда</Badge>
+                    <h4 className="fw-bold mb-0">{stats.pending || 0}</h4>
+                  </Card.Body>
+                </Card>
+              </Col>
+              <Col md={4}>
+                <Card className="border-0 shadow-sm">
+                  <Card.Body className="text-center">
+                    <Badge bg="danger" className="mb-2">Рад этилган</Badge>
+                    <h4 className="fw-bold mb-0">{stats.rejected || 0}</h4>
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          )}
 
           {/* Top Authors */}
           <Card className="border-0 shadow-sm">
@@ -371,6 +431,28 @@ const PublicationsDashboard = () => {
                               >
                                 <FaExternalLinkAlt />
                               </a>
+                            )}
+                            {currentUser.role === 'admin' && pub.status === 'pending' && (
+                              <>
+                                <Button
+                                  variant="link"
+                                  size="sm"
+                                  className="text-success"
+                                  onClick={() => handleApprove(pub.id)}
+                                  title="Тасдиқлаш"
+                                >
+                                  <FaCheck />
+                                </Button>
+                                <Button
+                                  variant="link"
+                                  size="sm"
+                                  className="text-warning"
+                                  onClick={() => handleReject(pub.id)}
+                                  title="Рад этиш"
+                                >
+                                  <FaTimes />
+                                </Button>
+                              </>
                             )}
                             {(currentUser.role === 'admin' || pub.created_by === currentUser.username) && (
                               <Button
