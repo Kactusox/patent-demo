@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap'
 import { FaUser, FaLock, FaEye, FaEyeSlash, FaShieldAlt } from 'react-icons/fa'
 import { login, isAuthenticated, getRememberedUser, getCurrentUser } from '../utils/auth'
+import logo from '../images/logo.png'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -63,7 +64,7 @@ const LoginPage = () => {
         navigate('/dashboard', { replace: true })
       }
     } catch (err) {
-      setError(err.message)
+      setError(err.message || 'Тизимга кириш мумкин эмас')
     } finally {
       setLoading(false)
     }
@@ -78,7 +79,7 @@ const LoginPage = () => {
               <Card.Body className="p-5">
                 {/* Logo and Header */}
                 <div className="text-center mb-4">
-                  <img src='src/images/logo.png' alt="Logo" className="logo-image" />
+                  <img src={logo} alt="Logo" className="logo-image" />
                     
                   {/* <div className="logo-circle mx-auto mb-3">
                     <FaShieldAlt className="logo-icon" />

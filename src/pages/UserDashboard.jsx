@@ -144,7 +144,15 @@ const UserDashboard = () => {
     const { name, value, files } = e.target
     
     if (name === 'file') {
-      setFormData(prev => ({ ...prev, file: files[0] }))
+      if (files[0]) {
+        const maxSize = 10 * 1024 * 1024 // 10MB
+        if (files[0].size > maxSize) {
+          alert('⚠️ Файл ҳажми 10MB дан кичик бўлиши керак!')
+          e.target.value = '' // Clear input
+          return
+        }
+        setFormData(prev => ({ ...prev, file: files[0] }))
+      }
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
     }
@@ -565,7 +573,7 @@ const UserDashboard = () => {
               {/* Welcome Card */}
               <Card className="border-0 shadow-sm mb-4">
                 <Card.Body className="p-4">
-                  <h5 className="fw-bold mb-3">Салом!</h5>
+                  <h5 className="fw-bold mb-3">Марҳабо!</h5>
                   <p className="mb-3">
                     Сиз патент бошқарув тизимига муваффақиятли кирдингиз. 
                     Бу ерда сиз ўз ҳужжатларингизни бошқаришингиз, янги патентлар қўшишингиз ва мавжуд маълумотларни кўришингиз мумкин.

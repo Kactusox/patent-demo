@@ -25,12 +25,14 @@ if (!fs.existsSync(uploadsDir)) {
 // Import routes
 const authRoutes = require('./routes/auth')
 const patentRoutes = require('./routes/patents')
+const publicationRoutes = require('./routes/publications')
 const userRoutes = require('./routes/users')
 const exportRoutes = require('./routes/export')
 
 // Use routes
 app.use('/api/auth', authRoutes)
 app.use('/api/patents', patentRoutes)
+app.use('/api/publications', publicationRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/export', exportRoutes)
 

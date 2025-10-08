@@ -100,6 +100,77 @@ const initDatabase = () => {
       console.log('✅ Activity logs table ready')
     }
   })
+
+  // Publications table - NEW for Scopus/Web of Science tracking
+  db.run(`
+    CREATE TABLE IF NOT EXISTS publications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      
+      -- Author Information
+      author_full_name TEXT NOT NULL,
+      author_orcid TEXT,
+      scopus_author_id TEXT,
+      scopus_profile_url TEXT,
+      wos_profile_url TEXT,
+      google_scholar_url TEXT,
+      
+      -- Author Metrics
+      total_articles INTEGER DEFAULT 0,
+      total_citations INTEGER DEFAULT 0,
+      h_index INTEGER DEFAULT 0,
+      
+      -- Publication Details
+      title TEXT NOT NULL,
+      publication_year INTEGER NOT NULL,
+      journal_name TEXT,
+      doi TEXT,
+      publication_type TEXT DEFAULT 'Илмий мақола',
+      language TEXT DEFAULT 'English',
+      
+      -- Impact Metrics
+      impact_factor REAL,
+      quartile TEXT,
+      sjr REAL,
+      
+      -- Additional Information
+      co_authors TEXT,
+      research_field TEXT,
+      keywords TEXT,
+      abstract TEXT,
+      
+      -- Institution
+      institution TEXT NOT NULL,
+      institution_name TEXT NOT NULL,
+      
+      -- File
+      file_path TEXT,
+      file_name TEXT,
+      
+      -- Status
+      status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected')),
+      
+      -- Metadata
+      created_by TEXT,
+      approved_by TEXT,
+      approved_at TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating publications table:', err.message)
+    } else {
+      console.log('✅ Publications table ready')
+      
+      // Create indexes for better performance
+      db.run('CREATE INDEX IF NOT EXISTS idx_publications_author ON publications(author_full_name)')
+      db.run('CREATE INDEX IF NOT EXISTS idx_publications_year ON publications(publication_year)')
+      db.run('CREATE INDEX IF NOT EXISTS idx_publications_institution ON publications(institution)')
+      db.run('CREATE INDEX IF NOT EXISTS idx_publications_status ON publications(status)')
+      
+      insertSamplePublications()
+    }
+  })
 }
 
 // Insert default users
@@ -327,6 +398,143 @@ const insertSamplePatents = () => {
   })
 
   stmt.finalize()
+}
+
+// Insert sample publications - Scopus/Web of Science data
+const insertSamplePublications = () => {
+  const publications = [
+    {
+      author_full_name: 'Shukurov N. E.',
+      total_articles: 28,
+      total_citations: 570,
+      h_index: 13,
+      title: 'Geochemistry and risk assessment of potentially toxic elements in surface river sediments (Chirchik-Akhangaran basin, Uzbekistan)',
+      scopus_profile_url: 'https://www.scopus.com/authid/detail.uri?authorId=23390955600',
+      publication_year: 2025,
+      journal_name: 'Environmental Geochemistry and Health',
+      doi: '10.1007/s10653-025-01234-5',
+      publication_type: 'Илмий мақола',
+      language: 'English',
+      quartile: 'Q1',
+      impact_factor: 4.5,
+      research_field: 'Геокимё',
+      co_authors: 'John Smith; Jane Doe; Ali Karimov',
+      institution: 'neftgaz',
+      institution_name: 'Нефт ва газ конлари геологияси ҳамда қидируви институти',
+      status: 'approved',
+      created_by: 'neftgaz',
+      approved_by: 'admin',
+      approved_at: '2025-10-01T10:00:00Z'
+    },
+    {
+      author_full_name: 'Bahtiyor Nurtaev',
+      total_articles: 31,
+      total_citations: 567,
+      h_index: 12,
+      title: 'Hydrocarbon accumulation characteristics and main controlling factors of major salt-bearing basins in Central Asia',
+      scopus_profile_url: 'https://www.scopus.com/authid/detail.uri?authorId=56110118800',
+      publication_year: 2024,
+      journal_name: 'Journal of Petroleum Science and Engineering',
+      doi: '10.1016/j.petrol.2024.01.123',
+      publication_type: 'Илмий мақола',
+      language: 'English',
+      quartile: 'Q1',
+      impact_factor: 5.2,
+      research_field: 'Нефт ва газ',
+      co_authors: 'Wang Li; Zhang Wei; Ivanov A.N.',
+      institution: 'neftgaz',
+      institution_name: 'Нефт ва газ конлари геологияси ҳамда қидируви институти',
+      status: 'approved',
+      created_by: 'neftgaz',
+      approved_by: 'admin',
+      approved_at: '2024-12-15T14:30:00Z'
+    },
+    {
+      author_full_name: 'Karimov A. B.',
+      total_articles: 18,
+      total_citations: 245,
+      h_index: 9,
+      title: 'Mineral resource assessment using remote sensing and GIS techniques in Uzbekistan',
+      scopus_profile_url: 'https://www.scopus.com/authid/detail.uri?authorId=12345678900',
+      publication_year: 2025,
+      journal_name: 'Minerals',
+      doi: '10.3390/min15010001',
+      publication_type: 'Илмий мақола',
+      language: 'English',
+      quartile: 'Q2',
+      impact_factor: 2.8,
+      research_field: 'Минералогия',
+      co_authors: 'Brown M.; Taylor S.',
+      institution: 'mineral',
+      institution_name: 'Минерал ресурслар институти',
+      status: 'approved',
+      created_by: 'mineral',
+      approved_by: 'admin',
+      approved_at: '2025-09-20T11:45:00Z'
+    },
+    {
+      author_full_name: 'Abdullayev H. M.',
+      total_articles: 22,
+      total_citations: 334,
+      h_index: 11,
+      title: 'Seismic hazard assessment of the Tashkent region based on modern geophysical data',
+      scopus_profile_url: 'https://www.scopus.com/authid/detail.uri?authorId=98765432100',
+      publication_year: 2024,
+      journal_name: 'Journal of Seismology',
+      doi: '10.1007/s10950-024-10234-x',
+      publication_type: 'Илмий мақола',
+      language: 'English',
+      quartile: 'Q1',
+      impact_factor: 3.9,
+      research_field: 'Геофизика',
+      co_authors: 'Petrov V.I.; Kumar R.',
+      institution: 'geofizika',
+      institution_name: 'Ҳ.М. Абдуллаев номидаги геология ва геофизика институти',
+      status: 'approved',
+      created_by: 'geofizika',
+      approved_by: 'admin',
+      approved_at: '2024-11-10T09:15:00Z'
+    }
+  ]
+
+  const stmt = db.prepare(`
+    INSERT OR IGNORE INTO publications (
+      author_full_name, total_articles, total_citations, h_index,
+      title, scopus_profile_url, publication_year, journal_name, doi,
+      publication_type, language, quartile, impact_factor, research_field,
+      co_authors, institution, institution_name, status,
+      created_by, approved_by, approved_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `)
+
+  publications.forEach(pub => {
+    stmt.run(
+      pub.author_full_name,
+      pub.total_articles,
+      pub.total_citations,
+      pub.h_index,
+      pub.title,
+      pub.scopus_profile_url,
+      pub.publication_year,
+      pub.journal_name,
+      pub.doi,
+      pub.publication_type,
+      pub.language,
+      pub.quartile,
+      pub.impact_factor,
+      pub.research_field,
+      pub.co_authors,
+      pub.institution,
+      pub.institution_name,
+      pub.status,
+      pub.created_by,
+      pub.approved_by,
+      pub.approved_at
+    )
+  })
+
+  stmt.finalize()
+  console.log('✅ Sample publications inserted')
 }
 
 // Helper: Log activity
