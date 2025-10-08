@@ -3,7 +3,7 @@ import { Row, Col, Card, Button, Badge, Table, Form, Modal, Alert, InputGroup, S
 import { 
   FaHome, FaFileAlt, FaUpload, FaUser, FaSignOutAlt, FaBuilding, 
   FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash, FaExclamationTriangle,
-  FaDownload, FaSave, FaTimes, FaSearch
+  FaDownload, FaSave, FaTimes, FaSearch, FaBook
 } from 'react-icons/fa'
 import { getCurrentUser } from '../utils/auth'
 import { logout } from '../services/authService'
@@ -18,6 +18,7 @@ import {
 import { changePassword } from '../services/userService'
 import { downloadZipFile, exportToExcel, getExportStats } from '../services/exportService'
 import { PATENT_TYPES } from '../utils/patentData'
+import PublicationsDashboard from './PublicationsDashboard'
 
 // Import institution logos
 import neftgazLogo from '../images/neftgazlogo.png'
@@ -489,6 +490,16 @@ const UserDashboard = () => {
             >
               <FaUpload className="nav-icon" />
               <span>Янги қўшиш</span>
+            </a>
+          </div>
+          <div className="nav-item">
+            <a 
+              href="#" 
+              className={`nav-link ${activeTab === 'publications' ? 'active' : ''}`}
+              onClick={(e) => { e.preventDefault(); setActiveTab('publications'); }}
+            >
+              <FaBook className="nav-icon" />
+              <span>Илмий мақолалар</span>
             </a>
           </div>
           <div className="nav-item">
@@ -970,6 +981,11 @@ const UserDashboard = () => {
                 </Card>
               </Col>
             </Row>
+          )}
+
+          {/* PUBLICATIONS TAB */}
+          {activeTab === 'publications' && (
+            <PublicationsDashboard />
           )}
         </div>
       </div>

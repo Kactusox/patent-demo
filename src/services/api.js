@@ -48,10 +48,26 @@ export const API_ENDPOINTS = {
   REJECT_PATENT: (id) => `/patents/${id}/reject`,
   PATENT_STATS: '/patents/stats/summary',
 
+  // Publications (NEW)
+  PUBLICATIONS: '/publications',
+  PUBLICATION_BY_ID: (id) => `/publications/${id}`,
+  CREATE_PUBLICATION: '/publications',
+  UPDATE_PUBLICATION: (id) => `/publications/${id}`,
+  DELETE_PUBLICATION: (id) => `/publications/${id}`,
+  APPROVE_PUBLICATION: (id) => `/publications/${id}/approve`,
+  REJECT_PUBLICATION: (id) => `/publications/${id}/reject`,
+  PUBLICATION_STATS: '/publications/stats/summary',
+  PUBLICATION_AUTHORS: '/publications/authors/list',
+
   // Users
   USERS: '/users',
   USER_BY_ID: (id) => `/users/${id}`,
   CHANGE_PASSWORD: (id) => `/users/${id}/password`,
+  
+  // Export
+  EXPORT_ZIP: '/export/download-zip',
+  EXPORT_EXCEL: '/export/export-excel',
 }
 
+export { API_BASE_URL }
 export default API_BASE_URL
