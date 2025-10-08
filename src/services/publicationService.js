@@ -334,6 +334,51 @@ export const getRecentPublications = async (months = 12, institution = 'all') =>
   }
 }
 
+// Export publications as ZIP
+export const downloadPublicationsZip = async (institution = 'all') => {
+  try {
+    const url = `${API_BASE_URL}/export/download-publications-zip?institution=${institution}`
+    window.open(url, '_blank')
+  } catch (error) {
+    console.error('Error downloading publications ZIP:', error)
+    throw error
+  }
+}
+
+// Export publications to Excel
+export const exportPublicationsToExcel = async (institution = 'all') => {
+  try {
+    const XLSX = (await import('xlsx')).default
+    const { saveAs } = await import('file-saver')
+    
+    const url = `${API_BASE_URL}/export/export-publications-excel?institution=${institution}`
+    const response = await fetch(url)
+    
+    if (!response.ok) {
+      throw new Error('Экспорт қилишда хато')
+    }
+    
+    const result = await response.json()
+    
+    // Create workbook
+    const wb = XLSX.utils.book_new()
+    const ws = XLSX.utils.json_to_sheet(result.data)
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Мақолалар')
+    
+    // Generate Excel file
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' })
+    
+    // Download file
+    saveAs(blob, result.fileName)
+  } catch (error) {
+    console.error('Error exporting to Excel:', error)
+    throw error
+  }
+}
+
 // Export all functions
 export default {
   getAllPublications,
@@ -354,5 +399,7 @@ export default {
   getPublicationsByField,
   getPublicationsByQuartile,
   getTotalImpactFactor,
-  getRecentPublications
+  getRecentPublications,
+  downloadPublicationsZip,
+  exportPublicationsToExcel
 }

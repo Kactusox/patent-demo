@@ -9,7 +9,9 @@ import {
   deletePublication,
   downloadPublicationFile,
   approvePublication,
-  rejectPublication 
+  rejectPublication,
+  downloadPublicationsZip,
+  exportPublicationsToExcel 
 } from '../services/publicationService'
 import { formatCitations, getQuartileBadge, getStatusBadge } from '../utils/publicationData'
 import AddPublicationModal from '../components/AddPublicationModal'
@@ -119,6 +121,27 @@ const PublicationsDashboard = () => {
     }
   }
 
+  // Handle export
+  const handleExportZip = async () => {
+    try {
+      const institution = currentUser.role === 'admin' ? 'all' : currentUser.name
+      await downloadPublicationsZip(institution)
+    } catch (err) {
+      console.error('Error downloading ZIP:', err)
+      alert('❌ Хато: ' + err.message)
+    }
+  }
+
+  const handleExportExcel = async () => {
+    try {
+      const institution = currentUser.role === 'admin' ? 'all' : currentUser.name
+      await exportPublicationsToExcel(institution)
+    } catch (err) {
+      console.error('Error exporting Excel:', err)
+      alert('❌ Хато: ' + err.message)
+    }
+  }
+
   // Filter publications
   const filteredPublications = publications.filter(pub => {
     const matchesSearch = searchTerm === '' || 
@@ -151,10 +174,20 @@ const PublicationsDashboard = () => {
           <p className="text-muted">Scopus ва Web of Science тизимлари</p>
         </Col>
         <Col xs="auto">
-          <Button variant="primary" onClick={() => setShowAddModal(true)}>
-            <FaPlus className="me-2" />
-            Янги мақола
-          </Button>
+          <div className="d-flex gap-2">
+            <Button variant="outline-success" onClick={handleExportZip} title="ZIP юклаб олиш">
+              <FaDownload className="me-2" />
+              ZIP
+            </Button>
+            <Button variant="outline-primary" onClick={handleExportExcel} title="Excel экспорт">
+              <FaFileExcel className="me-2" />
+              Excel
+            </Button>
+            <Button variant="primary" onClick={() => setShowAddModal(true)}>
+              <FaPlus className="me-2" />
+              Янги мақола
+            </Button>
+          </div>
         </Col>
       </Row>
 
