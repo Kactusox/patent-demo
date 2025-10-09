@@ -189,4 +189,128 @@ router.get('/stats', (req, res) => {
   }
 })
 
+// Download publications as ZIP
+router.get('/download-publications-zip', async (req, res) => {
+  try {
+    const { institution } = req.query
+    
+    // Query publications
+    let query = 'SELECT * FROM publications WHERE file_path IS NOT NULL'
+    const params = []
+    
+    if (institution && institution !== 'all') {
+      query += ' AND institution = ?'
+      params.push(institution)
+    }
+    
+    db.all(query, params, (err, publications) => {
+      if (err) {
+        console.error('Error fetching publications:', err)
+        return res.status(500).json({ error: 'Мақолаларни олишда хато' })
+      }
+
+      if (publications.length === 0) {
+        return res.status(404).json({ error: 'Файллар топилмади' })
+      }
+
+      // Create ZIP archive
+      const archive = archiver('zip', { zlib: { level: 9 } })
+      
+      // Set response headers
+      const downloadDate = new Date().toISOString().split('T')[0]
+      const filename = institution && institution !== 'all' 
+        ? `publications_${institution}_${downloadDate}.zip`
+        : `publications_all_${downloadDate}.zip`
+      
+      res.attachment(filename)
+      archive.pipe(res)
+
+      // Group publications by author
+      const pubsByAuthor = {}
+      publications.forEach(pub => {
+        const authorKey = pub.author_full_name
+        if (!pubsByAuthor[authorKey]) {
+          pubsByAuthor[authorKey] = []
+        }
+        pubsByAuthor[authorKey].push(pub)
+      })
+
+      // Add files to archive organized by author
+      Object.entries(pubsByAuthor).forEach(([author, authorPubs]) => {
+        const folderName = `${author}`
+        
+        authorPubs.forEach(pub => {
+          const filePath = path.join(__dirname, '..', pub.file_path)
+          
+          if (fs.existsSync(filePath)) {
+            const fileExt = path.extname(pub.file_name)
+            const fileName = `${pub.publication_year}_${pub.title.substring(0, 50).replace(/[^a-zA-Z0-9]/g, '_')}${fileExt}`
+            archive.file(filePath, { name: `${folderName}/${fileName}` })
+          }
+        })
+      })
+
+      // Finalize archive
+      archive.finalize()
+    })
+  } catch (error) {
+    console.error('Error creating publications ZIP:', error)
+    res.status(500).json({ error: 'ZIP яратишда хато' })
+  }
+})
+
+// Export publications to Excel
+router.get('/export-publications-excel', (req, res) => {
+  try {
+    const { institution } = req.query
+    
+    let query = 'SELECT * FROM publications ORDER BY publication_year DESC, author_full_name ASC'
+    const params = []
+    
+    if (institution && institution !== 'all') {
+      query = 'SELECT * FROM publications WHERE institution = ? ORDER BY publication_year DESC, author_full_name ASC'
+      params.push(institution)
+    }
+    
+    db.all(query, params, (err, publications) => {
+      if (err) {
+        console.error('Error fetching publications:', err)
+        return res.status(500).json({ error: 'Мақолаларни олишда хато' })
+      }
+
+      // Format data for Excel
+      const excelData = publications.map(pub => ({
+        'Муаллиф': pub.author_full_name,
+        'Мақола номи': pub.title,
+        'Журнал': pub.journal_name || 'N/A',
+        'Йил': pub.publication_year,
+        'DOI': pub.doi || 'N/A',
+        'Тур': pub.publication_type,
+        'Quartile': pub.quartile || 'N/A',
+        'Impact Factor': pub.impact_factor || 'N/A',
+        'Жами мақолалар': pub.total_articles,
+        'Жами iqtibosлар': pub.total_citations,
+        'h-индекс': pub.h_index,
+        'Ҳаммуаллифлар': pub.co_authors || 'N/A',
+        'Соҳа': pub.research_field || 'N/A',
+        'Муассаса': pub.institution_name,
+        'Scopus профил': pub.scopus_profile_url || 'N/A',
+        'Ҳолат': pub.status === 'approved' ? 'Тасдиқланган' : pub.status === 'pending' ? 'Кутилмоқда' : 'Рад этилган',
+        'Қўшилган сана': pub.created_at
+      }))
+
+      res.json({
+        success: true,
+        data: excelData,
+        fileName: institution && institution !== 'all' 
+          ? `publications_${institution}_${new Date().toISOString().split('T')[0]}.xlsx`
+          : `publications_all_${new Date().toISOString().split('T')[0]}.xlsx`
+      })
+    })
+  } catch (error) {
+    console.error('Error exporting publications:', error)
+    res.status(500).json({ error: 'Экспорт қилишда хато' })
+  }
+})
+
 module.exports = router
