@@ -7,6 +7,7 @@ import {
   getPublicationStats, 
   getUniqueAuthors,
   createPublication,
+  updatePublication,
   deletePublication,
   downloadPublicationFile,
   approvePublication,
@@ -16,6 +17,8 @@ import {
 } from '../services/publicationService'
 import { formatCitations, getQuartileBadge, getStatusBadge } from '../utils/publicationData'
 import AddPublicationModal from '../components/AddPublicationModal'
+import EditPublicationModal from '../components/EditPublicationModal'
+import PublicationDetailsModal from '../components/PublicationDetailsModal'
 
 const PublicationsDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
@@ -30,6 +33,9 @@ const PublicationsDashboard = () => {
   
   // Modals
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [selectedPublication, setSelectedPublication] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
   // Get current user
@@ -75,6 +81,36 @@ const PublicationsDashboard = () => {
       toast.success('Мақола муваффақиятли қўшилди!', { id: loadingToast })
     } catch (err) {
       console.error('Error adding publication:', err)
+      toast.error('Хато: ' + err.message, { id: loadingToast })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // Handle view details
+  const handleViewDetails = (publication) => {
+    setSelectedPublication(publication)
+    setShowDetailsModal(true)
+  }
+
+  // Handle edit publication
+  const handleEdit = (publication) => {
+    setSelectedPublication(publication)
+    setShowEditModal(true)
+  }
+
+  // Handle update publication
+  const handleUpdatePublication = async (id, publicationData, file) => {
+    const loadingToast = toast.loading('Янгиланмоқда...')
+    try {
+      setSubmitting(true)
+      await updatePublication(id, publicationData, file)
+      setShowEditModal(false)
+      setSelectedPublication(null)
+      loadData()
+      toast.success('Мақола муваффақиятли янгиланди!', { id: loadingToast })
+    } catch (err) {
+      console.error('Error updating publication:', err)
       toast.error('Хато: ' + err.message, { id: loadingToast })
     } finally {
       setSubmitting(false)
@@ -458,16 +494,14 @@ const PublicationsDashboard = () => {
                             <Badge bg={statusBadge.variant}>{statusBadge.text}</Badge>
                           </td>
                           <td className="text-center">
-                            {pub.file_path && (
-                              <Button
-                                variant="link"
-                                size="sm"
-                                onClick={() => downloadPublicationFile(pub)}
-                                title="Файлни кўриш"
-                              >
-                                <FaEye />
-                              </Button>
-                            )}
+                            <Button
+                              variant="link"
+                              size="sm"
+                              onClick={() => handleViewDetails(pub)}
+                              title="Тафсилотлар"
+                            >
+                              <FaEye />
+                            </Button>
                             {pub.scopus_profile_url && (
                               <a
                                 href={pub.scopus_profile_url}
@@ -502,15 +536,26 @@ const PublicationsDashboard = () => {
                               </>
                             )}
                             {(currentUser.role === 'admin' || pub.created_by === currentUser.username) && (
-                              <Button
-                                variant="link"
-                                size="sm"
-                                className="text-danger"
-                                onClick={() => handleDelete(pub.id)}
-                                title="Ўчириш"
-                              >
-                                <FaTrash />
-                              </Button>
+                              <>
+                                <Button
+                                  variant="link"
+                                  size="sm"
+                                  className="text-primary"
+                                  onClick={() => handleEdit(pub)}
+                                  title="Таҳрирлаш"
+                                >
+                                  <FaEdit />
+                                </Button>
+                                <Button
+                                  variant="link"
+                                  size="sm"
+                                  className="text-danger"
+                                  onClick={() => handleDelete(pub.id)}
+                                  title="Ўчириш"
+                                >
+                                  <FaTrash />
+                                </Button>
+                              </>
                             )}
                           </td>
                         </tr>
@@ -587,6 +632,28 @@ const PublicationsDashboard = () => {
         onSubmit={handleAddPublication}
         currentUser={currentUser}
         submitting={submitting}
+      />
+
+      {/* Edit Publication Modal */}
+      <EditPublicationModal
+        show={showEditModal}
+        onHide={() => {
+          setShowEditModal(false)
+          setSelectedPublication(null)
+        }}
+        onSubmit={handleUpdatePublication}
+        publication={selectedPublication}
+        submitting={submitting}
+      />
+
+      {/* Publication Details Modal */}
+      <PublicationDetailsModal
+        show={showDetailsModal}
+        onHide={() => {
+          setShowDetailsModal(false)
+          setSelectedPublication(null)
+        }}
+        publication={selectedPublication}
       />
     </Container>
   )
