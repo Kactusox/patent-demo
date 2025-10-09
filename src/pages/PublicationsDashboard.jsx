@@ -19,6 +19,7 @@ import { formatCitations, getQuartileBadge, getStatusBadge } from '../utils/publ
 import AddPublicationModal from '../components/AddPublicationModal'
 import EditPublicationModal from '../components/EditPublicationModal'
 import PublicationDetailsModal from '../components/PublicationDetailsModal'
+import EmptyState from '../components/EmptyState'
 
 const PublicationsDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
@@ -436,29 +437,32 @@ const PublicationsDashboard = () => {
           </Card>
 
           {/* Publications Table */}
-          <Card className="border-0 shadow-sm">
-            <Card.Body>
-              <Table hover responsive>
-                <thead className="table-light">
-                  <tr>
-                    <th>Муаллиф</th>
-                    <th>Мақола</th>
-                    <th>Йил</th>
-                    <th>Журнал</th>
-                    <th>Quartile</th>
-                    <th>Ҳолат</th>
-                    <th className="text-center">Ҳаракатлар</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPublications.length === 0 ? (
+          {filteredPublications.length === 0 ? (
+            <EmptyState
+              icon={FaBook}
+              title="Мақолалар топилмади"
+              description="Ҳозирча илмий мақолалар мавжуд эмас. Биринчи мақолангизни қўшинг!"
+              actionText="Мақола қўшиш"
+              onAction={() => setShowAddModal(true)}
+              variant="primary"
+            />
+          ) : (
+            <Card className="border-0 shadow-sm">
+              <Card.Body>
+                <Table hover responsive>
+                  <thead className="table-light">
                     <tr>
-                      <td colSpan="7" className="text-center text-muted py-4">
-                        Мақолалар топилмади
-                      </td>
+                      <th>Муаллиф</th>
+                      <th>Мақола</th>
+                      <th>Йил</th>
+                      <th>Журнал</th>
+                      <th>Quartile</th>
+                      <th>Ҳолат</th>
+                      <th className="text-center">Ҳаракатлар</th>
                     </tr>
-                  ) : (
-                    filteredPublications.map((pub) => {
+                  </thead>
+                  <tbody>
+                    {filteredPublications.map((pub) => {
                       const quartileBadge = getQuartileBadge(pub.quartile)
                       const statusBadge = getStatusBadge(pub.status)
                       
@@ -560,12 +564,12 @@ const PublicationsDashboard = () => {
                           </td>
                         </tr>
                       )
-                    })
-                  )}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
+                    })}
+                  </tbody>
+                </Table>
+              </Card.Body>
+            </Card>
+          )}
         </>
       )}
 
