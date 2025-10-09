@@ -21,6 +21,8 @@ import { PATENT_TYPES } from '../utils/patentData'
 import PublicationsDashboard from './PublicationsDashboard'
 import { getPublicationStats, getAllPublications } from '../services/publicationService'
 import { formatCitations } from '../utils/publicationData'
+import RecentActivityWidget from '../components/RecentActivityWidget'
+import QuickActionsWidget from '../components/QuickActionsWidget'
 
 // Import institution logos
 import neftgazLogo from '../images/neftgazlogo.png'
@@ -695,71 +697,16 @@ const UserDashboard = () => {
                 </Col>
               </Row>
 
-              {/* Recent Documents */}
-              <Card className="border-0 shadow-sm">
-                <Card.Header className="bg-white border-bottom py-3">
-                  <h5 className="mb-0 fw-bold">Сўнгги ҳужжатлар</h5>
-                </Card.Header>
-                <Card.Body className="p-0">
-                  {loading ? (
-                    <div className="text-center py-5">
-                      <Spinner animation="border" variant="primary" />
-                      <p className="text-muted mt-3">Юкланмоқда...</p>
-                    </div>
-                  ) : patents.length === 0 ? (
-                    <div className="text-center py-5">
-                      <FaFileAlt size={48} className="text-muted mb-3" />
-                      <p className="text-muted mb-0">Ҳозирча ҳужжатлар йўқ</p>
-                    </div>
-                  ) : (
-                    <Table responsive hover className="mb-0">
-                      <thead className="bg-light">
-                        <tr>
-                          <th className="px-4 py-3">Патент рақами</th>
-                          <th className="px-4 py-3">Номи</th>
-                          <th className="px-4 py-3 text-center">Ҳолати</th>
-                          <th className="px-4 py-3 text-center">Амаллар</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {patents.slice(0, 5).map((patent) => (
-                          <tr key={patent.id}>
-                            <td className="px-4 py-3">
-                              <Badge bg="primary">{patent.patent_number}</Badge>
-                            </td>
-                            <td className="px-4 py-3">
-                              <div className="text-truncate" style={{ maxWidth: 400 }}>
-                                {patent.title}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              {patent.status === 'approved' && (
-                                <Badge bg="success">
-                                  <FaCheckCircle className="me-1" /> Тасдиқланган
-                                </Badge>
-                              )}
-                              {patent.status === 'pending' && (
-                                <Badge bg="warning">
-                                  <FaClock className="me-1" /> Кутилмоқда
-                                </Badge>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              <Button 
-                                variant="outline-primary" 
-                                size="sm"
-                                onClick={() => handleView(patent)}
-                              >
-                                <FaEye />
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </Table>
-                  )}
-                </Card.Body>
-              </Card>
+              {/* Quick Actions */}
+              <QuickActionsWidget
+                onAddPatent={() => setShowUploadModal(true)}
+                onAddPublication={() => setActiveTab('publications')}
+                onViewPatents={() => setActiveTab('documents')}
+                onViewPublications={() => setActiveTab('publications')}
+              />
+
+              {/* Recent Activity - Combined Patents & Publications */}
+              <RecentActivityWidget patents={patents} publications={publications} />
             </>
           )}
 
