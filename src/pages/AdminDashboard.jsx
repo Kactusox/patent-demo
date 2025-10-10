@@ -36,6 +36,7 @@ import {
 import PublicationsDashboard from './PublicationsDashboard'
 import AnalyticsCharts from '../components/AnalyticsCharts'
 import { getAllPublications } from '../services/publicationService'
+import GlobalSearch from '../components/GlobalSearch'
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
@@ -46,6 +47,7 @@ const AdminDashboard = () => {
   const [showApproveModal, setShowApproveModal] = useState(false)
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [showAddPatentModal, setShowAddPatentModal] = useState(false)
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false)
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterInstitution, setFilterInstitution] = useState('all')
   const [loading, setLoading] = useState(false)
@@ -180,6 +182,17 @@ const AdminDashboard = () => {
   const handleLogout = () => {
     if (window.confirm('Тизимдан чиқмоқчимисиз?')) {
       logout()
+    }
+  }
+
+  const handleSearchSelect = (type, item) => {
+    if (type === 'patent') {
+      setSelectedPatent(item)
+      setActiveTab('patents')
+      // Optionally open view modal
+      setTimeout(() => setShowPatentModal(true), 300)
+    } else if (type === 'publication') {
+      setActiveTab('publications')
     }
   }
 
@@ -755,6 +768,16 @@ const AdminDashboard = () => {
             </a>
           </div>
           <div className="nav-item mt-4">
+            <a 
+              href="#" 
+              className="nav-link"
+              onClick={(e) => { e.preventDefault(); setShowGlobalSearch(true); }}
+            >
+              <FaSearch className="nav-icon" />
+              <span>Қидириш</span>
+            </a>
+          </div>
+          <div className="nav-item">
             <a 
               href="#" 
               className="nav-link text-danger"
@@ -2052,6 +2075,15 @@ const AdminDashboard = () => {
           </Modal.Footer>
         </Form>
       </Modal>
+
+      {/* Global Search Modal */}
+      <GlobalSearch
+        show={showGlobalSearch}
+        onHide={() => setShowGlobalSearch(false)}
+        patents={patents}
+        publications={publications}
+        onSelectItem={handleSearchSelect}
+      />
     </div>
   )
 }

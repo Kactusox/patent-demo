@@ -24,6 +24,7 @@ import { formatCitations } from '../utils/publicationData'
 import RecentActivityWidget from '../components/RecentActivityWidget'
 import QuickActionsWidget from '../components/QuickActionsWidget'
 import AnalyticsCharts from '../components/AnalyticsCharts'
+import GlobalSearch from '../components/GlobalSearch'
 
 // Import institution logos
 import neftgazLogo from '../images/neftgazlogo.png'
@@ -46,6 +47,7 @@ const UserDashboard = () => {
   const [showViewModal, setShowViewModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false)
   const [selectedPatent, setSelectedPatent] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(false)
@@ -170,6 +172,17 @@ const UserDashboard = () => {
   const handleLogout = () => {
     if (window.confirm('Тизимдан чиқмоқчимисиз?')) {
       logout()
+    }
+  }
+
+  const handleSearchSelect = (type, item) => {
+    if (type === 'patent') {
+      setSelectedPatent(item)
+      setActiveTab('documents')
+      // Optionally open view modal
+      setTimeout(() => setShowViewModal(true), 300)
+    } else if (type === 'publication') {
+      setActiveTab('publications')
     }
   }
 
@@ -556,6 +569,16 @@ const UserDashboard = () => {
             </a>
           </div>
           <div className="nav-item mt-4">
+            <a 
+              href="#" 
+              className="nav-link"
+              onClick={(e) => { e.preventDefault(); setShowGlobalSearch(true); }}
+            >
+              <FaSearch className="nav-icon" />
+              <span>Қидириш</span>
+            </a>
+          </div>
+          <div className="nav-item">
             <a 
               href="#" 
               className="nav-link text-danger"
@@ -1779,6 +1802,15 @@ const UserDashboard = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Global Search Modal */}
+      <GlobalSearch
+        show={showGlobalSearch}
+        onHide={() => setShowGlobalSearch(false)}
+        patents={patents}
+        publications={publications}
+        onSelectItem={handleSearchSelect}
+      />
     </div>
   )
 }
