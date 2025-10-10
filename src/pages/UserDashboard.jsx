@@ -3,7 +3,7 @@ import { Row, Col, Card, Button, Badge, Table, Form, Modal, Alert, InputGroup, S
 import { 
   FaHome, FaFileAlt, FaUpload, FaUser, FaSignOutAlt, FaBuilding, 
   FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash, FaExclamationTriangle,
-  FaDownload, FaSave, FaTimes, FaSearch, FaBook
+  FaDownload, FaSave, FaTimes, FaSearch, FaBook, FaChartLine
 } from 'react-icons/fa'
 import { getCurrentUser } from '../utils/auth'
 import { logout } from '../services/authService'
@@ -23,6 +23,7 @@ import { getPublicationStats, getAllPublications } from '../services/publication
 import { formatCitations } from '../utils/publicationData'
 import RecentActivityWidget from '../components/RecentActivityWidget'
 import QuickActionsWidget from '../components/QuickActionsWidget'
+import AnalyticsCharts from '../components/AnalyticsCharts'
 
 // Import institution logos
 import neftgazLogo from '../images/neftgazlogo.png'
@@ -537,6 +538,16 @@ const UserDashboard = () => {
           <div className="nav-item">
             <a 
               href="#" 
+              className={`nav-link ${activeTab === 'analytics' ? 'active' : ''}`}
+              onClick={(e) => { e.preventDefault(); setActiveTab('analytics'); }}
+            >
+              <FaChartLine className="nav-icon" />
+              <span>Аналитика</span>
+            </a>
+          </div>
+          <div className="nav-item">
+            <a 
+              href="#" 
               className={`nav-link ${activeTab === 'profile' ? 'active' : ''}`}
               onClick={(e) => { e.preventDefault(); setActiveTab('profile'); }}
             >
@@ -1021,6 +1032,27 @@ const UserDashboard = () => {
           {/* PUBLICATIONS TAB */}
           {activeTab === 'publications' && (
             <PublicationsDashboard />
+          )}
+
+          {/* ANALYTICS TAB */}
+          {activeTab === 'analytics' && (
+            <>
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                  <h4 className="fw-bold mb-1">Визуал аналитика ва статистика</h4>
+                  <p className="text-muted mb-0">Патентлар ва илмий мақолалар бўйича тўлиқ аналитик маълумотлар</p>
+                </div>
+              </div>
+
+              {loading ? (
+                <div className="text-center py-5">
+                  <Spinner animation="border" variant="primary" />
+                  <p className="text-muted mt-3">Юкланмоқда...</p>
+                </div>
+              ) : (
+                <AnalyticsCharts patents={patents} publications={publications} />
+              )}
+            </>
           )}
         </div>
       </div>

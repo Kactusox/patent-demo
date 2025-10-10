@@ -3,7 +3,7 @@ import { Row, Col, Card, Button, Badge, Table, Form, InputGroup, Modal, Alert, S
 import { 
   FaHome, FaUsers, FaFileAlt, FaCog, FaSignOutAlt, FaShieldAlt, 
   FaChartBar, FaCheckCircle, FaBuilding, FaSearch, FaEye, FaTrash,
-  FaDownload, FaClock, FaTimes, FaPlus, FaEdit, FaExclamationTriangle, FaCheck, FaKey, FaBook
+  FaDownload, FaClock, FaTimes, FaPlus, FaEdit, FaExclamationTriangle, FaCheck, FaKey, FaBook, FaChartLine
 } from 'react-icons/fa'
 import { getCurrentUser } from '../utils/auth'
 import { logout } from '../services/authService'
@@ -34,6 +34,8 @@ import {
   ActivityLogsModal 
 } from '../components/UserManagementModals'
 import PublicationsDashboard from './PublicationsDashboard'
+import AnalyticsCharts from '../components/AnalyticsCharts'
+import { getAllPublications } from '../services/publicationService'
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
@@ -49,6 +51,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [patents, setPatents] = useState([])
+  const [publications, setPublications] = useState([])
   const [users, setUsers] = useState([])
   const [activityLogs, setActivityLogs] = useState([])
   const [stats, setStats] = useState({
@@ -102,6 +105,7 @@ const AdminDashboard = () => {
   // Load data on mount
   useEffect(() => {
     loadPatents()
+    loadPublications()
     loadStatistics()
     loadUsers()
   }, [])
@@ -116,6 +120,15 @@ const AdminDashboard = () => {
       alert('Патентларни юклашда хато: ' + error.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadPublications = async () => {
+    try {
+      const allPublications = await getAllPublications()
+      setPublications(allPublications)
+    } catch (error) {
+      console.error('Error loading publications:', error)
     }
   }
 
@@ -714,6 +727,16 @@ const AdminDashboard = () => {
           <div className="nav-item">
             <a 
               href="#" 
+              className={`nav-link ${activeTab === 'analytics' ? 'active' : ''}`}
+              onClick={(e) => { e.preventDefault(); setActiveTab('analytics'); }}
+            >
+              <FaChartLine className="nav-icon" />
+              <span>Аналитика</span>
+            </a>
+          </div>
+          <div className="nav-item">
+            <a 
+              href="#" 
               className={`nav-link ${activeTab === 'users' ? 'active' : ''}`}
               onClick={(e) => { e.preventDefault(); setActiveTab('users'); }}
             >
@@ -1247,6 +1270,27 @@ const AdminDashboard = () => {
           {/* PUBLICATIONS TAB */}
           {activeTab === 'publications' && (
             <PublicationsDashboard />
+          )}
+
+          {/* ANALYTICS TAB */}
+          {activeTab === 'analytics' && (
+            <>
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                  <h4 className="fw-bold mb-1">Визуал аналитика ва статистика</h4>
+                  <p className="text-muted mb-0">Барча патентлар ва илмий мақолалар бўйича тўлиқ аналитик маълумотлар</p>
+                </div>
+              </div>
+
+              {loading ? (
+                <div className="text-center py-5">
+                  <Spinner animation="border" variant="primary" />
+                  <p className="text-muted mt-3">Юкланмоқда...</p>
+                </div>
+              ) : (
+                <AnalyticsCharts patents={patents} publications={publications} />
+              )}
+            </>
           )}
 
           {/* SETTINGS TAB */}
