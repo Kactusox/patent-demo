@@ -3,7 +3,7 @@ import { Row, Col, Card, Button, Badge, Table, Form, Modal, Alert, InputGroup, S
 import { 
   FaHome, FaFileAlt, FaUpload, FaUser, FaSignOutAlt, FaBuilding, 
   FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash, FaExclamationTriangle,
-  FaDownload, FaSave, FaTimes, FaSearch, FaBook
+  FaDownload, FaSave, FaTimes, FaSearch, FaBook, FaChartLine
 } from 'react-icons/fa'
 import { getCurrentUser } from '../utils/auth'
 import { logout } from '../services/authService'
@@ -23,6 +23,8 @@ import { getPublicationStats, getAllPublications } from '../services/publication
 import { formatCitations } from '../utils/publicationData'
 import RecentActivityWidget from '../components/RecentActivityWidget'
 import QuickActionsWidget from '../components/QuickActionsWidget'
+import AnalyticsCharts from '../components/AnalyticsCharts'
+import GlobalSearch from '../components/GlobalSearch'
 
 // Import institution logos
 import neftgazLogo from '../images/neftgazlogo.png'
@@ -44,6 +46,7 @@ const UserDashboard = () => {
   const [showViewModal, setShowViewModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false)
   const [selectedPatent, setSelectedPatent] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(false)
@@ -168,6 +171,17 @@ const UserDashboard = () => {
   const handleLogout = () => {
     if (window.confirm('Тизимдан чиқмоқчимисиз?')) {
       logout()
+    }
+  }
+
+  const handleSearchSelect = (type, item) => {
+    if (type === 'patent') {
+      setSelectedPatent(item)
+      setActiveTab('documents')
+      // Optionally open view modal
+      setTimeout(() => setShowViewModal(true), 300)
+    } else if (type === 'publication') {
+      setActiveTab('publications')
     }
   }
 
@@ -536,6 +550,16 @@ const UserDashboard = () => {
           <div className="nav-item">
             <a 
               href="#" 
+              className={`nav-link ${activeTab === 'analytics' ? 'active' : ''}`}
+              onClick={(e) => { e.preventDefault(); setActiveTab('analytics'); }}
+            >
+              <FaChartLine className="nav-icon" />
+              <span>Аналитика</span>
+            </a>
+          </div>
+          <div className="nav-item">
+            <a 
+              href="#" 
               className={`nav-link ${activeTab === 'profile' ? 'active' : ''}`}
               onClick={(e) => { e.preventDefault(); setActiveTab('profile'); }}
             >
@@ -544,6 +568,16 @@ const UserDashboard = () => {
             </a>
           </div>
           <div className="nav-item mt-4">
+            <a 
+              href="#" 
+              className="nav-link"
+              onClick={(e) => { e.preventDefault(); setShowGlobalSearch(true); }}
+            >
+              <FaSearch className="nav-icon" />
+              <span>Қидириш</span>
+            </a>
+          </div>
+          <div className="nav-item">
             <a 
               href="#" 
               className="nav-link text-danger"
@@ -1020,6 +1054,27 @@ const UserDashboard = () => {
           {/* PUBLICATIONS TAB */}
           {activeTab === 'publications' && (
             <PublicationsDashboard />
+          )}
+
+          {/* ANALYTICS TAB */}
+          {activeTab === 'analytics' && (
+            <>
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                  <h4 className="fw-bold mb-1">Визуал аналитика ва статистика</h4>
+                  <p className="text-muted mb-0">Патентлар ва илмий мақолалар бўйича тўлиқ аналитик маълумотлар</p>
+                </div>
+              </div>
+
+              {loading ? (
+                <div className="text-center py-5">
+                  <Spinner animation="border" variant="primary" />
+                  <p className="text-muted mt-3">Юкланмоқда...</p>
+                </div>
+              ) : (
+                <AnalyticsCharts patents={patents} publications={publications} />
+              )}
+            </>
           )}
         </div>
       </div>
@@ -1746,6 +1801,15 @@ const UserDashboard = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Global Search Modal */}
+      <GlobalSearch
+        show={showGlobalSearch}
+        onHide={() => setShowGlobalSearch(false)}
+        patents={patents}
+        publications={publications}
+        onSelectItem={handleSearchSelect}
+      />
     </div>
   )
 }
