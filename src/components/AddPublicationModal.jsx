@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Modal, Button, Form, Row, Col, Alert } from 'react-bootstrap'
 import { FaTimes } from 'react-icons/fa'
-import { PUBLICATION_TYPES, LANGUAGES, QUARTILES, RESEARCH_FIELDS } from '../utils/publicationData'
+import { LANGUAGES } from '../utils/publicationData'
 
 const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }) => {
   const [formData, setFormData] = useState({
@@ -17,14 +17,9 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
     title: '',
     publicationYear: new Date().getFullYear(),
     journalName: '',
-    doi: '',
-    publicationType: 'Илмий мақола',
     language: 'English',
-    impactFactor: '',
-    quartile: '',
     sjr: '',
     coAuthors: '',
-    researchField: '',
     keywords: '',
     abstract: '',
     file: null
@@ -76,10 +71,6 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
       }
     }
 
-    if (!formData.file) {
-      newErrors.file = 'Файл юклаш тавсия этилади'
-    }
-
     return newErrors
   }
 
@@ -117,14 +108,9 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
       title: '',
       publicationYear: new Date().getFullYear(),
       journalName: '',
-      doi: '',
-      publicationType: 'Илмий мақола',
       language: 'English',
-      impactFactor: '',
-      quartile: '',
       sjr: '',
       coAuthors: '',
-      researchField: '',
       keywords: '',
       abstract: '',
       file: null
@@ -285,23 +271,7 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
               </Form.Group>
             </Col>
 
-            <Col md={4}>
-              <Form.Group>
-                <Form.Label>Тур</Form.Label>
-                <Form.Select
-                  name="publicationType"
-                  value={formData.publicationType}
-                  onChange={handleChange}
-                  disabled={submitting}
-                >
-                  {PUBLICATION_TYPES.map((type, idx) => (
-                    <option key={idx} value={type}>{type}</option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-            </Col>
-
-            <Col md={4}>
+            <Col md={6}>
               <Form.Group>
                 <Form.Label>Тил</Form.Label>
                 <Form.Select
@@ -331,71 +301,7 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
               </Form.Group>
             </Col>
 
-            <Col md={6}>
-              <Form.Group>
-                <Form.Label>DOI</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="doi"
-                  value={formData.doi}
-                  onChange={handleChange}
-                  placeholder="10.1007/s10653-025-01234-5"
-                  disabled={submitting}
-                />
-              </Form.Group>
-            </Col>
-
-            <Col md={3}>
-              <Form.Group>
-                <Form.Label>Quartile</Form.Label>
-                <Form.Select
-                  name="quartile"
-                  value={formData.quartile}
-                  onChange={handleChange}
-                  disabled={submitting}
-                >
-                  <option value="">Танланг</option>
-                  {QUARTILES.map((q, idx) => (
-                    <option key={idx} value={q}>{q}</option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-            </Col>
-
-            <Col md={3}>
-              <Form.Group>
-                <Form.Label>Impact Factor</Form.Label>
-                <Form.Control
-                  type="number"
-                  step="0.01"
-                  name="impactFactor"
-                  value={formData.impactFactor}
-                  onChange={handleChange}
-                  placeholder="4.5"
-                  min="0"
-                  disabled={submitting}
-                />
-              </Form.Group>
-            </Col>
-
-            <Col md={6}>
-              <Form.Group>
-                <Form.Label>Тадқиқот соҳаси</Form.Label>
-                <Form.Select
-                  name="researchField"
-                  value={formData.researchField}
-                  onChange={handleChange}
-                  disabled={submitting}
-                >
-                  <option value="">Танланг</option>
-                  {RESEARCH_FIELDS.map((field, idx) => (
-                    <option key={idx} value={field}>{field}</option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-            </Col>
-
-            <Col md={6}>
+            <Col xs={12}>
               <Form.Group>
                 <Form.Label>Ҳаммуаллифлар</Form.Label>
                 <Form.Control
@@ -414,20 +320,16 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
 
             <Col xs={12}>
               <Form.Group>
-                <Form.Label>Файл (PDF, JPG, PNG)</Form.Label>
+                <Form.Label>Файл (PDF, JPG, PNG) - Ихтиёрий</Form.Label>
                 <Form.Control
                   type="file"
                   name="file"
                   onChange={handleChange}
                   accept=".pdf,.jpg,.jpeg,.png"
-                  isInvalid={!!errors.file}
                   disabled={submitting}
                 />
-                <Form.Control.Feedback type="invalid">
-                  {errors.file}
-                </Form.Control.Feedback>
                 <Form.Text className="text-muted">
-                  Макс. 10MB
+                  Макс. 10MB. Ихтиёрий - агар тўғридан-тўғри ҳаволалар мавжуд бўлса, юкламасангиз ҳам бўлади.
                 </Form.Text>
               </Form.Group>
             </Col>

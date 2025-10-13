@@ -216,40 +216,6 @@ const AnalyticsCharts = ({ patents, publications }) => {
           </Card>
         </Col>
 
-        {/* Quartile Distribution */}
-        {quartilePieData.length > 0 && (
-          <Col lg={6}>
-            <Card className="border-0 shadow-sm h-100">
-              <Card.Header className="bg-white border-bottom py-3">
-                <h6 className="mb-0 fw-semibold">
-                  <FaChartPie className="me-2 text-danger" />
-                  Quartile бўйича тақсимот
-                </h6>
-              </Card.Header>
-              <Card.Body>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={quartilePieData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name}: ${value}`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {quartilePieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </Card.Body>
-            </Card>
-          </Col>
-        )}
 
         {/* Top Authors by Citations */}
         <Col lg={6}>

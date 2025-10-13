@@ -15,7 +15,7 @@ import {
   downloadPublicationsZip,
   exportPublicationsToExcel 
 } from '../services/publicationService'
-import { formatCitations, getQuartileBadge, getStatusBadge } from '../utils/publicationData'
+import { formatCitations, getStatusBadge } from '../utils/publicationData'
 import AddPublicationModal from '../components/AddPublicationModal'
 import EditPublicationModal from '../components/EditPublicationModal'
 import PublicationDetailsModal from '../components/PublicationDetailsModal'
@@ -456,14 +456,12 @@ const PublicationsDashboard = () => {
                       <th>Мақола</th>
                       <th>Йил</th>
                       <th>Журнал</th>
-                      <th>Quartile</th>
                       <th>Ҳолат</th>
                       <th className="text-center">Ҳаракатлар</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredPublications.map((pub) => {
-                      const quartileBadge = getQuartileBadge(pub.quartile)
                       const statusBadge = getStatusBadge(pub.status)
                       
                       return (
@@ -478,21 +476,12 @@ const PublicationsDashboard = () => {
                             <div className="text-truncate" style={{ maxWidth: 300 }}>
                               {pub.title}
                             </div>
-                            {pub.doi && (
-                              <small className="text-muted d-block">DOI: {pub.doi}</small>
-                            )}
                           </td>
                           <td>{pub.publication_year}</td>
                           <td>
                             <div className="text-truncate" style={{ maxWidth: 150 }}>
                               {pub.journal_name || 'N/A'}
                             </div>
-                            {pub.impact_factor && (
-                              <small className="text-muted">IF: {pub.impact_factor}</small>
-                            )}
-                          </td>
-                          <td>
-                            <Badge bg={quartileBadge.variant}>{quartileBadge.text}</Badge>
                           </td>
                           <td>
                             <Badge bg={statusBadge.variant}>{statusBadge.text}</Badge>

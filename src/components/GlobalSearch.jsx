@@ -39,7 +39,6 @@ const GlobalSearch = ({ show, onHide, patents, publications, onSelectItem }) => 
       pub.title.toLowerCase().includes(lowerQuery) ||
       pub.author_full_name.toLowerCase().includes(lowerQuery) ||
       pub.journal_name?.toLowerCase().includes(lowerQuery) ||
-      pub.doi?.toLowerCase().includes(lowerQuery) ||
       pub.keywords?.toLowerCase().includes(lowerQuery) ||
       pub.institution_name.toLowerCase().includes(lowerQuery)
     ).slice(0, 10)
@@ -170,9 +169,6 @@ const GlobalSearch = ({ show, onHide, patents, publications, onSelectItem }) => 
                         <div className="flex-grow-1">
                           <div className="d-flex align-items-center mb-2">
                             <Badge bg="info" className="me-2">{pub.publication_year}</Badge>
-                            {pub.quartile && (
-                              <Badge bg="warning" className="me-2">{pub.quartile}</Badge>
-                            )}
                             <Badge 
                               bg={pub.status === 'approved' ? 'success' : pub.status === 'pending' ? 'warning' : 'danger'}
                             >
