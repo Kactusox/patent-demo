@@ -1,11 +1,10 @@
 import { Modal, Button, Row, Col, Badge, Table } from 'react-bootstrap'
 import { FaTimes, FaExternalLinkAlt, FaDownload } from 'react-icons/fa'
-import { formatCitations, getQuartileBadge, getStatusBadge } from '../utils/publicationData'
+import { formatCitations, getStatusBadge } from '../utils/publicationData'
 
 const PublicationDetailsModal = ({ show, onHide, publication }) => {
   if (!publication) return null
 
-  const quartileBadge = getQuartileBadge(publication.quartile)
   const statusBadge = getStatusBadge(publication.status)
 
   return (
@@ -66,43 +65,13 @@ const PublicationDetailsModal = ({ show, onHide, publication }) => {
                 <td>{publication.journal_name || 'N/A'}</td>
               </tr>
               <tr>
-                <td className="fw-semibold">DOI</td>
-                <td>
-                  {publication.doi ? (
-                    <a href={`https://doi.org/${publication.doi}`} target="_blank" rel="noopener noreferrer">
-                      {publication.doi} <FaExternalLinkAlt size={12} />
-                    </a>
-                  ) : 'N/A'}
-                </td>
-              </tr>
-              <tr>
-                <td className="fw-semibold">Тур</td>
-                <td>{publication.publication_type}</td>
-              </tr>
-              <tr>
                 <td className="fw-semibold">Тил</td>
                 <td>{publication.language}</td>
-              </tr>
-              <tr>
-                <td className="fw-semibold">Impact Factor</td>
-                <td>{publication.impact_factor || 'N/A'}</td>
-              </tr>
-              <tr>
-                <td className="fw-semibold">Quartile</td>
-                <td>
-                  <Badge bg={quartileBadge.variant}>{quartileBadge.text}</Badge>
-                </td>
               </tr>
               {publication.co_authors && (
                 <tr>
                   <td className="fw-semibold">Ҳаммуаллифлар</td>
                   <td>{publication.co_authors}</td>
-                </tr>
-              )}
-              {publication.research_field && (
-                <tr>
-                  <td className="fw-semibold">Соҳа</td>
-                  <td>{publication.research_field}</td>
                 </tr>
               )}
               <tr>

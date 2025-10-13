@@ -105,14 +105,9 @@ router.post('/', upload.single('file'), (req, res) => {
     title,
     publicationYear,
     journalName,
-    doi,
-    publicationType,
     language,
-    impactFactor,
-    quartile,
     sjr,
     coAuthors,
-    researchField,
     keywords,
     abstract,
     institution,
@@ -140,10 +135,10 @@ router.post('/', upload.single('file'), (req, res) => {
     INSERT INTO publications (
       author_full_name, author_orcid, scopus_author_id, scopus_profile_url,
       wos_profile_url, google_scholar_url, total_articles, total_citations, h_index,
-      title, publication_year, journal_name, doi, publication_type, language,
-      impact_factor, quartile, sjr, co_authors, research_field, keywords, abstract,
+      title, publication_year, journal_name, publication_type, language,
+      sjr, co_authors, keywords, abstract,
       institution, institution_name, status, file_path, file_name, created_by
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `
   
   const filePath = req.file ? `/uploads/${req.file.filename}` : null
@@ -162,14 +157,10 @@ router.post('/', upload.single('file'), (req, res) => {
     title,
     pubYear,
     journalName || null,
-    doi || null,
-    publicationType || 'Илмий мақола',
+    'Илмий мақола', // Default type
     language || 'English',
-    parseFloat(impactFactor) || null,
-    quartile || null,
     parseFloat(sjr) || null,
     coAuthors || null,
-    researchField || null,
     keywords || null,
     abstract || null,
     institution,
@@ -210,14 +201,9 @@ router.put('/:id', upload.single('file'), (req, res) => {
     title,
     publicationYear,
     journalName,
-    doi,
-    publicationType,
     language,
-    impactFactor,
-    quartile,
     sjr,
     coAuthors,
-    researchField,
     keywords,
     abstract
   } = req.body
@@ -239,9 +225,8 @@ router.put('/:id', upload.single('file'), (req, res) => {
     SET author_full_name = ?, author_orcid = ?, scopus_author_id = ?,
         scopus_profile_url = ?, wos_profile_url = ?, google_scholar_url = ?,
         total_articles = ?, total_citations = ?, h_index = ?,
-        title = ?, publication_year = ?, journal_name = ?, doi = ?,
-        publication_type = ?, language = ?, impact_factor = ?, quartile = ?,
-        sjr = ?, co_authors = ?, research_field = ?, keywords = ?, abstract = ?,
+        title = ?, publication_year = ?, journal_name = ?,
+        language = ?, sjr = ?, co_authors = ?, keywords = ?, abstract = ?,
         updated_at = CURRENT_TIMESTAMP
   `
   
@@ -258,14 +243,9 @@ router.put('/:id', upload.single('file'), (req, res) => {
     title,
     parseInt(publicationYear),
     journalName || null,
-    doi || null,
-    publicationType || 'Илмий мақола',
     language || 'English',
-    parseFloat(impactFactor) || null,
-    quartile || null,
     parseFloat(sjr) || null,
     coAuthors || null,
-    researchField || null,
     keywords || null,
     abstract || null
   ]
