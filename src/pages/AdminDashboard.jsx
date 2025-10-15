@@ -35,7 +35,21 @@ import {
 } from '../components/UserManagementModals'
 import PublicationsDashboard from './PublicationsDashboard'
 import AnalyticsCharts from '../components/AnalyticsCharts'
-import { getAllPublications } from '../services/publicationService'
+import { 
+  getAllPublications,
+  createPublication,
+  deletePublication,
+  approvePublication,
+  rejectPublication
+} from '../services/publicationService'
+import { 
+  AddPublicationModal,
+  ViewPublicationModal,
+  DeletePublicationModal,
+  ApprovePublicationModal,
+  RejectPublicationModal
+} from '../components/PublicationModals'
+import { formatCitations } from '../utils/publicationData'
 import GlobalSearch from '../components/GlobalSearch'
 
 const AdminDashboard = () => {
@@ -65,6 +79,19 @@ const AdminDashboard = () => {
   })
   const [exportStats, setExportStats] = useState(null)
   const [exportLoading, setExportLoading] = useState(false)
+  
+  // Publications state
+  const [selectedPublication, setSelectedPublication] = useState(null)
+  const [showAddPublicationModal, setShowAddPublicationModal] = useState(false)
+  const [showViewPublicationModal, setShowViewPublicationModal] = useState(false)
+  const [showDeletePublicationModal, setShowDeletePublicationModal] = useState(false)
+  const [showApprovePublicationModal, setShowApprovePublicationModal] = useState(false)
+  const [showRejectPublicationModal, setShowRejectPublicationModal] = useState(false)
+  const [filterPublicationStatus, setFilterPublicationStatus] = useState('all')
+  const [filterPublicationInstitution, setFilterPublicationInstitution] = useState('all')
+  const [publicationSearchQuery, setPublicationSearchQuery] = useState('')
+  const [publicationLoading, setPublicationLoading] = useState(false)
+  const [publicationSubmitting, setPublicationSubmitting] = useState(false)
   
   // User management modals
   const [showAddUserModal, setShowAddUserModal] = useState(false)
@@ -126,11 +153,15 @@ const AdminDashboard = () => {
   }
 
   const loadPublications = async () => {
+    setPublicationLoading(true)
     try {
       const allPublications = await getAllPublications()
       setPublications(allPublications)
     } catch (error) {
       console.error('Error loading publications:', error)
+      alert('Мақолаларни юклашда хато: ' + error.message)
+    } finally {
+      setPublicationLoading(false)
     }
   }
 
@@ -270,6 +301,110 @@ const AdminDashboard = () => {
   const handleDownload = (patent) => {
     downloadPatent(patent)
   }
+
+  // ========================================
+  // PUBLICATION MANAGEMENT HANDLERS
+  // ========================================
+
+  const handleAddPublication = () => {
+    setShowAddPublicationModal(true)
+  }
+
+  const handleSubmitPublication = async (publicationData, file) => {
+    setPublicationSubmitting(true)
+    try {
+      await createPublication(publicationData, file)
+      alert('Мақола муваффақиятли қўшилди!')
+      setShowAddPublicationModal(false)
+      await loadPublications()
+    } catch (error) {
+      console.error('Error creating publication:', error)
+      alert('Хато: ' + error.message)
+    } finally {
+      setPublicationSubmitting(false)
+    }
+  }
+
+  const handleViewPublication = (publication) => {
+    setSelectedPublication(publication)
+    setShowViewPublicationModal(true)
+  }
+
+  const handleDeletePublication = (publication) => {
+    setSelectedPublication(publication)
+    setShowDeletePublicationModal(true)
+  }
+
+  const confirmDeletePublication = async () => {
+    setPublicationSubmitting(true)
+    try {
+      await deletePublication(selectedPublication.id)
+      alert('Мақола ўчирилди')
+      await loadPublications()
+      setShowDeletePublicationModal(false)
+      setSelectedPublication(null)
+    } catch (error) {
+      console.error('Error deleting publication:', error)
+      alert('Ўчиришда хато: ' + error.message)
+    } finally {
+      setPublicationSubmitting(false)
+    }
+  }
+
+  const handleApprovePublication = (publication) => {
+    setSelectedPublication(publication)
+    setShowApprovePublicationModal(true)
+  }
+
+  const confirmApprovePublication = async () => {
+    setPublicationSubmitting(true)
+    try {
+      await approvePublication(selectedPublication.id, currentUser.username)
+      alert('Мақола тасдиқланди!')
+      await loadPublications()
+      setShowApprovePublicationModal(false)
+      setSelectedPublication(null)
+    } catch (error) {
+      console.error('Error approving publication:', error)
+      alert('Тасдиқлашда хато: ' + error.message)
+    } finally {
+      setPublicationSubmitting(false)
+    }
+  }
+
+  const handleRejectPublication = (publication) => {
+    setSelectedPublication(publication)
+    setShowRejectPublicationModal(true)
+  }
+
+  const confirmRejectPublication = async () => {
+    setPublicationSubmitting(true)
+    try {
+      await rejectPublication(selectedPublication.id)
+      alert('Мақола рад этилди')
+      await loadPublications()
+      setShowRejectPublicationModal(false)
+      setSelectedPublication(null)
+    } catch (error) {
+      console.error('Error rejecting publication:', error)
+      alert('Рад этишда хато: ' + error.message)
+    } finally {
+      setPublicationSubmitting(false)
+    }
+  }
+
+  // Filtered publications
+  const filteredPublications = publications.filter(pub => {
+    const matchesSearch = !publicationSearchQuery || 
+      pub.title.toLowerCase().includes(publicationSearchQuery.toLowerCase()) ||
+      pub.author_full_name.toLowerCase().includes(publicationSearchQuery.toLowerCase()) ||
+      (pub.journal_name && pub.journal_name.toLowerCase().includes(publicationSearchQuery.toLowerCase()))
+    
+    const matchesStatus = filterPublicationStatus === 'all' || pub.status === filterPublicationStatus
+    const matchesInstitution = filterPublicationInstitution === 'all' || pub.institution === filterPublicationInstitution
+    
+    return matchesSearch && matchesStatus && matchesInstitution
+  })
 
   // ========================================
   // USER MANAGEMENT HANDLERS
@@ -1292,7 +1427,215 @@ const AdminDashboard = () => {
 
           {/* PUBLICATIONS TAB */}
           {activeTab === 'publications' && (
-            <PublicationsDashboard />
+            <>
+              {/* Search and Filters */}
+              <Card className="border-0 shadow-sm mb-4">
+                <Card.Body>
+                  <Row className="g-3 align-items-end">
+                    <Col md={5}>
+                      <InputGroup>
+                        <InputGroup.Text>
+                          <FaSearch />
+                        </InputGroup.Text>
+                        <Form.Control
+                          type="text"
+                          placeholder="Мақола, муаллиф ёки журнал бўйича қидириш..."
+                          value={publicationSearchQuery}
+                          onChange={(e) => setPublicationSearchQuery(e.target.value)}
+                        />
+                        {publicationSearchQuery && (
+                          <Button 
+                            variant="outline-secondary"
+                            onClick={() => setPublicationSearchQuery('')}
+                          >
+                            <FaTimes />
+                          </Button>
+                        )}
+                      </InputGroup>
+                    </Col>
+                    <Col md={3}>
+                      <Form.Select 
+                        value={filterPublicationStatus}
+                        onChange={(e) => setFilterPublicationStatus(e.target.value)}
+                      >
+                        <option value="all">Барча ҳолатлар</option>
+                        <option value="approved">Тасдиқланган</option>
+                        <option value="pending">Кутилмоқда</option>
+                        <option value="rejected">Рад этилган</option>
+                      </Form.Select>
+                    </Col>
+                    <Col md={4}>
+                      <Form.Select 
+                        value={filterPublicationInstitution}
+                        onChange={(e) => setFilterPublicationInstitution(e.target.value)}
+                      >
+                        <option value="all">Барча муассасалар</option>
+                        <option value="neftgaz">Нефт ва газ</option>
+                        <option value="mineral">Минерал ресурслар</option>
+                        <option value="gidro">Гидрогеология</option>
+                        <option value="geofizika">Геофизика</option>
+                      </Form.Select>
+                    </Col>
+                  </Row>
+                  
+                  {/* Action Buttons Row */}
+                  <Row className="mt-3">
+                    <Col>
+                      <div className="d-flex gap-2 align-items-center">
+                        <Button 
+                          variant="primary" 
+                          size="sm"
+                          onClick={handleAddPublication}
+                        >
+                          <FaPlus className="me-2" />
+                          Мақола қўшиш
+                        </Button>
+                        
+                        <small className="text-muted ms-3">
+                          Топилди: <strong>{filteredPublications.length}</strong> мақола
+                        </small>
+                      </div>
+                    </Col>
+                  </Row>
+
+                  {(publicationSearchQuery || filterPublicationStatus !== 'all' || filterPublicationInstitution !== 'all') && (
+                    <div className="mt-3">
+                      <Button 
+                        variant="link" 
+                        size="sm"
+                        onClick={() => {
+                          setFilterPublicationStatus('all')
+                          setFilterPublicationInstitution('all')
+                          setPublicationSearchQuery('')
+                        }}
+                      >
+                        Филтрларни тозалаш
+                      </Button>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+
+              {/* Publications Table */}
+              <Card className="border-0 shadow-sm">
+                <Card.Body className="p-0">
+                  {publicationLoading ? (
+                    <div className="text-center py-5">
+                      <Spinner animation="border" variant="primary" />
+                      <p className="text-muted mt-3">Юкланмоқда...</p>
+                    </div>
+                  ) : (
+                    <div className="table-responsive">
+                      <Table hover className="mb-0">
+                        <thead className="bg-light">
+                          <tr>
+                            <th className="px-4 py-3">№</th>
+                            <th className="px-4 py-3">Муаллиф</th>
+                            <th className="px-4 py-3">Мақола</th>
+                            <th className="px-4 py-3">Йил</th>
+                            <th className="px-4 py-3">Журнал</th>
+                            <th className="px-4 py-3">Муассаса</th>
+                            <th className="px-4 py-3 text-center">Ҳолати</th>
+                            <th className="px-4 py-3 text-center">Амаллар</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredPublications.length === 0 ? (
+                            <tr>
+                              <td colSpan="8" className="text-center py-5">
+                                <FaBook size={48} className="text-muted mb-3 d-block mx-auto" />
+                                <p className="text-muted mb-0">Ҳеч қандай мақола топилмади</p>
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredPublications.map((pub, idx) => (
+                              <tr key={pub.id}>
+                                <td className="px-4 py-3">{idx + 1}</td>
+                                <td className="px-4 py-3">
+                                  <div className="fw-semibold">{pub.author_full_name}</div>
+                                  <small className="text-muted">
+                                    {pub.total_articles} мақола • {formatCitations(pub.total_citations)} iqtibос • h={pub.h_index}
+                                  </small>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="text-truncate" style={{ maxWidth: 300 }}>
+                                    {pub.title}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3">{pub.publication_year}</td>
+                                <td className="px-4 py-3">
+                                  <small className="text-muted">{pub.journal_name || 'N/A'}</small>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <small>{INSTITUTION_INFO[pub.institution]?.shortName}</small>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  {pub.status === 'approved' && (
+                                    <Badge bg="success">
+                                      <FaCheckCircle className="me-1" /> Тасдиқланган
+                                    </Badge>
+                                  )}
+                                  {pub.status === 'pending' && (
+                                    <Badge bg="warning">
+                                      <FaClock className="me-1" /> Кутилмоқда
+                                    </Badge>
+                                  )}
+                                  {pub.status === 'rejected' && (
+                                    <Badge bg="danger">
+                                      <FaTimes className="me-1" /> Рад этилган
+                                    </Badge>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <div className="d-flex gap-1 justify-content-center flex-wrap">
+                                    <Button 
+                                      variant="outline-primary" 
+                                      size="sm"
+                                      onClick={() => handleViewPublication(pub)}
+                                      title="Кўриш"
+                                    >
+                                      <FaEye />
+                                    </Button>
+                                    {pub.status === 'pending' && (
+                                      <>
+                                        <Button 
+                                          variant="outline-success" 
+                                          size="sm"
+                                          onClick={() => handleApprovePublication(pub)}
+                                          title="Тасдиқлаш"
+                                        >
+                                          <FaCheck />
+                                        </Button>
+                                        <Button 
+                                          variant="outline-warning" 
+                                          size="sm"
+                                          onClick={() => handleRejectPublication(pub)}
+                                          title="Рад этиш"
+                                        >
+                                          <FaTimes />
+                                        </Button>
+                                      </>
+                                    )}
+                                    <Button 
+                                      variant="outline-danger" 
+                                      size="sm"
+                                      onClick={() => handleDeletePublication(pub)}
+                                      title="Ўчириш"
+                                    >
+                                      <FaTrash />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </Table>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+            </>
           )}
 
           {/* ANALYTICS TAB */}
@@ -2083,6 +2426,57 @@ const AdminDashboard = () => {
         patents={patents}
         publications={publications}
         onSelectItem={handleSearchSelect}
+      />
+
+      {/* Publication Modals */}
+      <AddPublicationModal
+        show={showAddPublicationModal}
+        onHide={() => setShowAddPublicationModal(false)}
+        onSubmit={handleSubmitPublication}
+        currentUser={currentUser}
+        submitting={publicationSubmitting}
+      />
+
+      <ViewPublicationModal
+        show={showViewPublicationModal}
+        onHide={() => {
+          setShowViewPublicationModal(false)
+          setSelectedPublication(null)
+        }}
+        publication={selectedPublication}
+      />
+
+      <DeletePublicationModal
+        show={showDeletePublicationModal}
+        onHide={() => {
+          setShowDeletePublicationModal(false)
+          setSelectedPublication(null)
+        }}
+        onConfirm={confirmDeletePublication}
+        publication={selectedPublication}
+        submitting={publicationSubmitting}
+      />
+
+      <ApprovePublicationModal
+        show={showApprovePublicationModal}
+        onHide={() => {
+          setShowApprovePublicationModal(false)
+          setSelectedPublication(null)
+        }}
+        onConfirm={confirmApprovePublication}
+        publication={selectedPublication}
+        submitting={publicationSubmitting}
+      />
+
+      <RejectPublicationModal
+        show={showRejectPublicationModal}
+        onHide={() => {
+          setShowRejectPublicationModal(false)
+          setSelectedPublication(null)
+        }}
+        onConfirm={confirmRejectPublication}
+        publication={selectedPublication}
+        submitting={publicationSubmitting}
       />
     </div>
   )
