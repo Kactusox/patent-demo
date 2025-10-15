@@ -3,7 +3,7 @@ import { Row, Col, Card, Button, Badge, Table, Form, Modal, Alert, InputGroup, S
 import { 
   FaHome, FaFileAlt, FaUpload, FaUser, FaSignOutAlt, FaBuilding, 
   FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash, FaExclamationTriangle,
-  FaDownload, FaSave, FaTimes, FaSearch, FaBook, FaChartLine
+  FaDownload, FaSave, FaTimes, FaSearch, FaBook, FaChartLine, FaPlus
 } from 'react-icons/fa'
 import { getCurrentUser } from '../utils/auth'
 import { logout } from '../services/authService'
