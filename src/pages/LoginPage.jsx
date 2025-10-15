@@ -189,7 +189,7 @@ const LoginPage = () => {
 
               {/* Footer */}
               <Card.Footer className="text-center text-muted py-3 bg-light">
-                <small>© 2025 Geological Science University</small>
+                <small>© 2025 University of Geological Science</small>
               </Card.Footer>
             </Card>
           </Col>
