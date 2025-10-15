@@ -23,10 +23,12 @@ import {
   getPublicationStats, 
   getAllPublications,
   createPublication,
+  updatePublication,
   deletePublication
 } from '../services/publicationService'
 import { 
   AddPublicationModal,
+  EditPublicationModal,
   ViewPublicationModal,
   DeletePublicationModal
 } from '../components/PublicationModals'
@@ -96,6 +98,7 @@ const UserDashboard = () => {
   const [publicationStats, setPublicationStats] = useState({})
   const [selectedPublication, setSelectedPublication] = useState(null)
   const [showAddPublicationModal, setShowAddPublicationModal] = useState(false)
+  const [showEditPublicationModal, setShowEditPublicationModal] = useState(false)
   const [showViewPublicationModal, setShowViewPublicationModal] = useState(false)
   const [showDeletePublicationModal, setShowDeletePublicationModal] = useState(false)
   const [publicationSearchQuery, setPublicationSearchQuery] = useState('')
@@ -152,6 +155,27 @@ const UserDashboard = () => {
   const handleViewPublication = (publication) => {
     setSelectedPublication(publication)
     setShowViewPublicationModal(true)
+  }
+
+  const handleEditPublication = (publication) => {
+    setSelectedPublication(publication)
+    setShowEditPublicationModal(true)
+  }
+
+  const handleUpdatePublication = async (id, publicationData, file) => {
+    setPublicationSubmitting(true)
+    try {
+      await updatePublication(id, publicationData, file)
+      alert('Мақола муваффақиятли янгиланди!')
+      setShowEditPublicationModal(false)
+      setSelectedPublication(null)
+      await loadPublicationsData()
+    } catch (error) {
+      console.error('Error updating publication:', error)
+      alert('Янгилашда хато: ' + error.message)
+    } finally {
+      setPublicationSubmitting(false)
+    }
   }
 
   const handleDeletePublication = (publication) => {
@@ -1259,6 +1283,14 @@ const UserDashboard = () => {
                                       <FaEye />
                                     </Button>
                                     <Button 
+                                      variant="outline-info" 
+                                      size="sm"
+                                      onClick={() => handleEditPublication(pub)}
+                                      title="Таҳрирлаш"
+                                    >
+                                      <FaEdit />
+                                    </Button>
+                                    <Button 
                                       variant="outline-danger" 
                                       size="sm"
                                       onClick={() => handleDeletePublication(pub)}
@@ -2041,6 +2073,17 @@ const UserDashboard = () => {
         onHide={() => setShowAddPublicationModal(false)}
         onSubmit={handleSubmitPublication}
         currentUser={currentUser}
+        submitting={publicationSubmitting}
+      />
+
+      <EditPublicationModal
+        show={showEditPublicationModal}
+        onHide={() => {
+          setShowEditPublicationModal(false)
+          setSelectedPublication(null)
+        }}
+        onSubmit={handleUpdatePublication}
+        publication={selectedPublication}
         submitting={publicationSubmitting}
       />
 
