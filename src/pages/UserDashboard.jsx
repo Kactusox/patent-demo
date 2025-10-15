@@ -701,7 +701,7 @@ const UserDashboard = () => {
                 <Card.Body className="p-4">
                   <Row className="align-items-center">
                     <Col md={8}>
-                      <h3 className="fw-bold mb-2">Марҳабо, {currentUser?.fullName}!</h3>
+                      <h3 className="fw-bold mb-2">{currentUser?.fullName}!</h3>
                       <p className="mb-3 opacity-90">
                         Патент ва илмий мақолалар бошқарув тизими
                       </p>
