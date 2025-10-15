@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Container, Row, Col, Card, Table, Badge, Button, Form, Spinner, Nav, Alert } from 'react-bootstrap'
-import { FaBook, FaQuoteRight, FaTrophy, FaUsers, FaPlus, FaDownload, FaFileExcel, FaEye, FaEdit, FaTrash, FaExternalLinkAlt, FaCheck, FaTimes } from 'react-icons/fa'
+import { FaBook, FaQuoteRight, FaTrophy, FaUsers, FaPlus, FaDownload, FaFileExcel, FaEye, FaEdit, FaTrash, FaExternalLinkAlt, FaCheck, FaTimes, FaBuilding } from 'react-icons/fa'
 import toast, { Toaster } from 'react-hot-toast'
 import { 
   getAllPublications, 
@@ -16,6 +16,7 @@ import {
   exportPublicationsToExcel 
 } from '../services/publicationService'
 import { formatCitations, getStatusBadge } from '../utils/publicationData'
+import { INSTITUTION_INFO } from '../utils/patentData'
 import AddPublicationModal from '../components/AddPublicationModal'
 import EditPublicationModal from '../components/EditPublicationModal'
 import PublicationDetailsModal from '../components/PublicationDetailsModal'
@@ -31,6 +32,7 @@ const PublicationsDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterYear, setFilterYear] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [filterInstitution, setFilterInstitution] = useState('all')
   
   // Modals
   const [showAddModal, setShowAddModal] = useState(false)
@@ -200,8 +202,9 @@ const PublicationsDashboard = () => {
     
     const matchesYear = filterYear === '' || pub.publication_year === parseInt(filterYear)
     const matchesStatus = filterStatus === '' || pub.status === filterStatus
+    const matchesInstitution = filterInstitution === 'all' || pub.institution === filterInstitution
     
-    return matchesSearch && matchesYear && matchesStatus
+    return matchesSearch && matchesYear && matchesStatus && matchesInstitution
   })
 
   // Get unique years
@@ -408,7 +411,7 @@ const PublicationsDashboard = () => {
           <Card className="border-0 shadow-sm mb-4">
             <Card.Body>
               <Row className="g-3">
-                <Col md={6}>
+                <Col md={currentUser.role === 'admin' ? 4 : 6}>
                   <Form.Control
                     type="search"
                     placeholder="Қидириш..."
@@ -416,7 +419,22 @@ const PublicationsDashboard = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </Col>
-                <Col md={3}>
+                {currentUser.role === 'admin' && (
+                  <Col md={4}>
+                    <Form.Select 
+                      value={filterInstitution} 
+                      onChange={(e) => setFilterInstitution(e.target.value)}
+                    >
+                      <option value="all">Барча институтлар</option>
+                      {Object.entries(INSTITUTION_INFO).map(([key, info]) => (
+                        <option key={key} value={key}>
+                          {info.shortName}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Col>
+                )}
+                <Col md={currentUser.role === 'admin' ? 2 : 3}>
                   <Form.Select value={filterYear} onChange={(e) => setFilterYear(e.target.value)}>
                     <option value="">Барча йиллар</option>
                     {uniqueYears.map(year => (
@@ -424,9 +442,9 @@ const PublicationsDashboard = () => {
                     ))}
                   </Form.Select>
                 </Col>
-                <Col md={3}>
+                <Col md={2}>
                   <Form.Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                    <option value="">Барча ҳолатлар</option>
+                    <option value="">Ҳолат</option>
                     <option value="approved">Тасдиқланган</option>
                     <option value="pending">Кутилмоқда</option>
                     <option value="rejected">Рад этилган</option>
@@ -456,6 +474,7 @@ const PublicationsDashboard = () => {
                       <th>Мақола</th>
                       <th>Йил</th>
                       <th>Журнал</th>
+                      {currentUser.role === 'admin' && <th>Институт</th>}
                       <th>Ҳолат</th>
                       <th className="text-center">Ҳаракатлар</th>
                     </tr>
@@ -483,6 +502,13 @@ const PublicationsDashboard = () => {
                               {pub.journal_name || 'N/A'}
                             </div>
                           </td>
+                          {currentUser.role === 'admin' && (
+                            <td>
+                              <small className="text-muted">
+                                {INSTITUTION_INFO[pub.institution]?.shortName || pub.institution}
+                              </small>
+                            </td>
+                          )}
                           <td>
                             <Badge bg={statusBadge.variant}>{statusBadge.text}</Badge>
                           </td>

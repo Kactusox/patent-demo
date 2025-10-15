@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Modal, Button, Form, Row, Col, Alert } from 'react-bootstrap'
 import { FaTimes } from 'react-icons/fa'
 import { LANGUAGES } from '../utils/publicationData'
+import { INSTITUTION_INFO } from '../utils/patentData'
 
 const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }) => {
   const [formData, setFormData] = useState({
@@ -22,6 +23,7 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
     coAuthors: '',
     keywords: '',
     abstract: '',
+    institution: currentUser.role === 'admin' ? 'neftgaz' : currentUser.name,
     file: null
   })
 
@@ -84,10 +86,11 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
     }
 
     // Prepare data for submission
+    const selectedInst = currentUser.role === 'admin' ? formData.institution : currentUser.name
     const publicationData = {
       ...formData,
-      institution: currentUser.name,
-      institutionName: currentUser.fullName,
+      institution: selectedInst,
+      institutionName: INSTITUTION_INFO[selectedInst]?.fullName || currentUser.fullName,
       createdBy: currentUser.username
     }
 
@@ -113,6 +116,7 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
       coAuthors: '',
       keywords: '',
       abstract: '',
+      institution: currentUser.role === 'admin' ? 'neftgaz' : currentUser.name,
       file: null
     })
     setErrors({})
@@ -130,6 +134,32 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
 
       <Form onSubmit={handleSubmit}>
         <Modal.Body style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+          {/* Institution Selection for Admin */}
+          {currentUser.role === 'admin' && (
+            <>
+              <h6 className="fw-bold mb-3 text-primary">ИНСТИТУТ ТАНЛАШ</h6>
+              <Row className="g-3 mb-4">
+                <Col xs={12}>
+                  <Form.Group>
+                    <Form.Label>Институт <span className="text-danger">*</span></Form.Label>
+                    <Form.Select
+                      name="institution"
+                      value={formData.institution}
+                      onChange={handleChange}
+                      disabled={submitting}
+                    >
+                      {Object.entries(INSTITUTION_INFO).map(([key, info]) => (
+                        <option key={key} value={key}>
+                          {info.fullName}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+              </Row>
+            </>
+          )}
+
           {/* Author Information */}
           <h6 className="fw-bold mb-3 text-primary">МУАЛЛИФ МАЪЛУМОТЛАРИ</h6>
 
