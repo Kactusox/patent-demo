@@ -90,6 +90,53 @@ router.get('/:id', (req, res) => {
   })
 })
 
+// Check for duplicate publication (by title, author, and year)
+router.post('/check-duplicate', (req, res) => {
+  const { title, authorFullName, publicationYear, excludeId } = req.body
+  
+  if (!title || !authorFullName || !publicationYear) {
+    return res.status(400).json({ error: 'Барча майдонлар керак' })
+  }
+  
+  let query = `
+    SELECT id, title, author_full_name, publication_year, institution_name, created_by 
+    FROM publications 
+    WHERE LOWER(TRIM(title)) = LOWER(TRIM(?)) 
+    AND LOWER(TRIM(author_full_name)) = LOWER(TRIM(?))
+    AND publication_year = ?
+  `
+  const params = [title, authorFullName, parseInt(publicationYear)]
+  
+  // Exclude current publication when editing
+  if (excludeId) {
+    query += ' AND id != ?'
+    params.push(parseInt(excludeId))
+  }
+  
+  db.get(query, params, (err, publication) => {
+    if (err) {
+      console.error('Error checking duplicate publication:', err)
+      return res.status(500).json({ error: 'Текширишда хато' })
+    }
+
+    if (publication) {
+      return res.json({ 
+        isDuplicate: true, 
+        publication: {
+          id: publication.id,
+          title: publication.title,
+          authorFullName: publication.author_full_name,
+          publicationYear: publication.publication_year,
+          institutionName: publication.institution_name,
+          createdBy: publication.created_by
+        }
+      })
+    }
+
+    res.json({ isDuplicate: false })
+  })
+})
+
 // CREATE new publication
 router.post('/', upload.single('file'), (req, res) => {
   const {

@@ -96,22 +96,54 @@ router.get('/:id', (req, res) => {
   })
 })
 
-// Check for duplicate application number
-router.get('/check-duplicate/:applicationNumber', (req, res) => {
-  const query = 'SELECT id, patent_number FROM patents WHERE application_number = ?'
+// Check for duplicate patent (by patent number OR application number)
+router.post('/check-duplicate', (req, res) => {
+  const { patentNumber, applicationNumber, excludeId } = req.body
   
-  db.get(query, [req.params.applicationNumber], (err, patent) => {
+  if (!patentNumber && !applicationNumber) {
+    return res.status(400).json({ error: 'Патент рақами ёки талабнома рақами керак' })
+  }
+  
+  let query = `
+    SELECT id, patent_number, application_number, title, institution_name, created_by 
+    FROM patents 
+    WHERE (LOWER(TRIM(patent_number)) = LOWER(TRIM(?)) OR LOWER(TRIM(application_number)) = LOWER(TRIM(?)))
+  `
+  const params = [patentNumber || '', applicationNumber || '']
+  
+  // Exclude current patent when editing
+  if (excludeId) {
+    query += ' AND id != ?'
+    params.push(parseInt(excludeId))
+  }
+  
+  db.get(query, params, (err, patent) => {
     if (err) {
-      console.error('Error checking duplicate:', err)
+      console.error('Error checking duplicate patent:', err)
       return res.status(500).json({ error: 'Текширишда хато' })
     }
 
     if (patent) {
+      // Determine which field matched
+      let matchedField = ''
+      if (patent.patent_number && patentNumber && 
+          patent.patent_number.toLowerCase().trim() === patentNumber.toLowerCase().trim()) {
+        matchedField = 'patent_number'
+      } else if (patent.application_number && applicationNumber && 
+                 patent.application_number.toLowerCase().trim() === applicationNumber.toLowerCase().trim()) {
+        matchedField = 'application_number'
+      }
+      
       return res.json({ 
-        isDuplicate: true, 
+        isDuplicate: true,
+        matchedField,
         patent: {
           id: patent.id,
-          patentNumber: patent.patent_number
+          patentNumber: patent.patent_number,
+          applicationNumber: patent.application_number,
+          title: patent.title,
+          institutionName: patent.institution_name,
+          createdBy: patent.created_by
         }
       })
     }

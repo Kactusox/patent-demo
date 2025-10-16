@@ -113,6 +113,25 @@ export const deletePublication = async (id) => {
   }
 }
 
+// Check for duplicate publication
+export const checkDuplicatePublication = async (title, authorFullName, publicationYear, excludeId = null) => {
+  try {
+    const response = await apiCall('/publications/check-duplicate', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        title, 
+        authorFullName, 
+        publicationYear,
+        excludeId 
+      })
+    })
+    return response.isDuplicate ? response.publication : null
+  } catch (error) {
+    console.error('Error checking duplicate publication:', error)
+    return null
+  }
+}
+
 // Approve publication (admin only)
 export const approvePublication = async (id, approvedBy) => {
   try {
@@ -386,6 +405,7 @@ export default {
   createPublication,
   updatePublication,
   deletePublication,
+  checkDuplicatePublication,
   approvePublication,
   rejectPublication,
   getPublicationStats,
