@@ -14,7 +14,8 @@ import {
   approvePatent, 
   rejectPatent,
   getStatistics,
-  downloadPatent 
+  downloadPatent,
+  checkDuplicate
 } from '../services/patentService'
 import { 
   getAllUsers, 
@@ -131,6 +132,7 @@ const AdminDashboard = () => {
     file: null
   })
   const [patentFormErrors, setPatentFormErrors] = useState({})
+  const [patentDuplicateWarning, setPatentDuplicateWarning] = useState('')
   
   const currentUser = getCurrentUser()
 
@@ -662,7 +664,7 @@ const AdminDashboard = () => {
     setShowAddPatentModal(true)
   }
 
-  const handlePatentFormChange = (e) => {
+  const handlePatentFormChange = async (e) => {
     const { name, value, files } = e.target
     
     if (name === 'file') {
@@ -677,6 +679,27 @@ const AdminDashboard = () => {
       }
     } else {
       setPatentFormData(prev => ({ ...prev, [name]: value }))
+      
+      // Check for duplicates when patent number or application number changes
+      if ((name === 'patentNumber' || name === 'applicationNumber') && value) {
+        const checkPatentNum = name === 'patentNumber' ? value : patentFormData.patentNumber
+        const checkAppNum = name === 'applicationNumber' ? value : patentFormData.applicationNumber
+        
+        if (checkPatentNum || checkAppNum) {
+          const duplicate = await checkDuplicate(checkPatentNum, checkAppNum)
+          if (duplicate) {
+            const field = duplicate.matchedField === 'patent_number' ? 'Патент рақами' : 'Талабнома рақами'
+            setPatentDuplicateWarning(
+              `⚠️ ОГОҲЛАНТИРИШ: ${field} аллақачон тизимда мавжуд!\n` +
+              `Муассаса: ${duplicate.institutionName}\n` +
+              `Қўшган: ${duplicate.createdBy}\n` +
+              `Илтимос, такрорий киритмасликка ишонч ҳосил қилинг.`
+            )
+          } else {
+            setPatentDuplicateWarning('')
+          }
+        }
+      }
     }
     
     // Clear error for this field
@@ -2126,6 +2149,17 @@ const AdminDashboard = () => {
         </Modal.Header>
         <Form onSubmit={handlePatentFormSubmit}>
           <Modal.Body>
+            {/* Duplicate Warning */}
+            {patentDuplicateWarning && (
+              <Alert variant="danger" className="mb-3">
+                <FaExclamationTriangle className="me-2" />
+                <strong>Такрорий патент!</strong>
+                <div className="mt-2" style={{ whiteSpace: 'pre-line' }}>
+                  {patentDuplicateWarning}
+                </div>
+              </Alert>
+            )}
+            
             <Row className="g-3">
               {/* Type Selection - Always First */}
               <Col md={6}>

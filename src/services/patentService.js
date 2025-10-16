@@ -109,13 +109,20 @@ export const deletePatent = async (id) => {
   }
 }
 
-// Check for duplicate application number
-export const checkDuplicate = async (applicationNumber) => {
+// Check for duplicate patent (by patent number or application number)
+export const checkDuplicate = async (patentNumber, applicationNumber, excludeId = null) => {
   try {
-    const data = await apiCall(API_ENDPOINTS.CHECK_DUPLICATE(encodeURIComponent(applicationNumber)))
-    return data.isDuplicate ? data.patent : null
+    const data = await apiCall('/patents/check-duplicate', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        patentNumber, 
+        applicationNumber,
+        excludeId 
+      })
+    })
+    return data.isDuplicate ? { ...data.patent, matchedField: data.matchedField } : null
   } catch (error) {
-    console.error('Error checking duplicate:', error)
+    console.error('Error checking duplicate patent:', error)
     return null
   }
 }

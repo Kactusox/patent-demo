@@ -307,13 +307,24 @@ const UserDashboard = () => {
       setFormErrors(prev => ({ ...prev, [name]: '' }))
     }
 
-    // Check for duplicates when application number changes
-    if (name === 'applicationNumber' && value) {
-      const duplicate = await checkDuplicate(value)
-      if (duplicate) {
-        setDuplicateWarning(`⚠️ Огоҳлантириш: Бу талабнома рақами аллақачон мавжуд (${duplicate.patentNumber})`)
-      } else {
-        setDuplicateWarning('')
+    // Check for duplicates when patent number or application number changes
+    if ((name === 'patentNumber' || name === 'applicationNumber') && value) {
+      const checkPatentNum = name === 'patentNumber' ? value : formData.patentNumber
+      const checkAppNum = name === 'applicationNumber' ? value : formData.applicationNumber
+      
+      if (checkPatentNum || checkAppNum) {
+        const duplicate = await checkDuplicate(checkPatentNum, checkAppNum, selectedPatent?.id)
+        if (duplicate) {
+          const field = duplicate.matchedField === 'patent_number' ? 'Патент рақами' : 'Талабнома рақами'
+          setDuplicateWarning(
+            `⚠️ ОГОҲЛАНТИРИШ: ${field} аллақачон тизимда мавжуд!\n` +
+            `Муассаса: ${duplicate.institutionName}\n` +
+            `Қўшган: ${duplicate.createdBy}\n` +
+            `Илтимос, такрорий киритмасликка ишонч ҳосил қилинг.`
+          )
+        } else {
+          setDuplicateWarning('')
+        }
       }
     }
   }
@@ -1358,9 +1369,12 @@ const UserDashboard = () => {
         <Form onSubmit={handleSubmit}>
           <Modal.Body>
             {duplicateWarning && (
-              <Alert variant="warning">
+              <Alert variant="danger">
                 <FaExclamationTriangle className="me-2" />
-                {duplicateWarning}
+                <strong>Такрорий патент!</strong>
+                <div className="mt-2" style={{ whiteSpace: 'pre-line' }}>
+                  {duplicateWarning}
+                </div>
               </Alert>
             )}
             
