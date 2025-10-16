@@ -824,49 +824,135 @@ const AdminDashboard = () => {
 
   const filteredPatents = getFilteredPatents()
 
+  // Calculate comprehensive statistics
+  const totalPublications = publications.length
+  const approvedPublications = publications.filter(p => p.status === 'approved').length
+  const pendingPublications = publications.filter(p => p.status === 'pending').length
+  const rejectedPublications = publications.filter(p => p.status === 'rejected').length
+  
+  const totalDocuments = stats.total + totalPublications
+  const totalApproved = stats.approved + approvedPublications
+  const totalPending = stats.pending + pendingPublications
+  const totalRejected = stats.rejected + rejectedPublications
+  
+  // Recent activity (last 7 days)
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  const recentPatents = patents.filter(p => {
+    const createdAt = new Date(p.created_at + 'Z')
+    return createdAt >= sevenDaysAgo
+  })
+  const recentPublications = publications.filter(p => {
+    const createdAt = new Date(p.created_at + 'Z')
+    return createdAt >= sevenDaysAgo
+  })
+  
+  // Combined recent activity
+  const recentActivity = [
+    ...recentPatents.map(p => ({ ...p, type: 'patent', timestamp: new Date(p.created_at + 'Z') })),
+    ...recentPublications.map(p => ({ ...p, type: 'publication', timestamp: new Date(p.created_at + 'Z') }))
+  ].sort((a, b) => b.timestamp - a.timestamp).slice(0, 10)
+
   const statsCards = [
     { 
-      label: 'Жами патентлар', 
-      value: stats.total.toString(), 
+      label: 'Жами ҳужжатлар', 
+      value: totalDocuments.toString(), 
+      subValue: `${stats.total} патент + ${totalPublications} мақола`,
       icon: FaFileAlt, 
       color: '#0d6efd',
-      bgColor: '#e7f1ff'
+      bgColor: '#e7f1ff',
+      trend: recentPatents.length + recentPublications.length > 0 ? `+${recentPatents.length + recentPublications.length} (7 кун)` : null
     },
     { 
       label: 'Муассасалар', 
       value: Object.keys(INSTITUTION_INFO).length.toString(), 
+      subValue: `${users.filter(u => u.role === 'institution').length} актив фойдаланувчи`,
       icon: FaBuilding, 
       color: '#198754',
-      bgColor: '#d1f7e5'
+      bgColor: '#d1f7e5',
+      trend: null
     },
     { 
       label: 'Тасдиқланган', 
-      value: stats.approved.toString(), 
+      value: totalApproved.toString(), 
+      subValue: `${((totalApproved/totalDocuments)*100).toFixed(1)}% умумийдан`,
       icon: FaCheckCircle, 
       color: '#198754',
-      bgColor: '#d1f7e5'
+      bgColor: '#d1f7e5',
+      trend: null
     },
     { 
       label: 'Кутилмоқда', 
-      value: stats.pending.toString(), 
+      value: totalPending.toString(), 
+      subValue: `${stats.pending} патент + ${pendingPublications} мақола`,
       icon: FaClock, 
       color: '#ffc107',
-      bgColor: '#fff3cd'
+      bgColor: '#fff3cd',
+      trend: totalPending > 0 ? 'Тасдиқлаш керак!' : null
+    },
+    { 
+      label: 'Патентлар', 
+      value: stats.total.toString(), 
+      subValue: `${stats.approved} тасдиқланган`,
+      icon: FaFileAlt, 
+      color: '#6610f2',
+      bgColor: '#e7e3fc',
+      trend: recentPatents.length > 0 ? `+${recentPatents.length} (7 кун)` : null
+    },
+    { 
+      label: 'Илмий мақолалар', 
+      value: totalPublications.toString(), 
+      subValue: `${approvedPublications} тасдиқланган`,
+      icon: FaBook, 
+      color: '#d63384',
+      bgColor: '#f7d6e6',
+      trend: recentPublications.length > 0 ? `+${recentPublications.length} (7 кун)` : null
+    },
+    { 
+      label: 'Жами фойдаланувчилар', 
+      value: users.length.toString(), 
+      subValue: `${users.filter(u => u.is_active).length} актив`,
+      icon: FaUsers, 
+      color: '#0dcaf0',
+      bgColor: '#cff4fc',
+      trend: null
+    },
+    { 
+      label: 'Рад этилган', 
+      value: totalRejected.toString(), 
+      subValue: `${stats.rejected} патент + ${rejectedPublications} мақола`,
+      icon: FaTimes, 
+      color: '#dc3545',
+      bgColor: '#f8d7da',
+      trend: null
     }
   ]
 
-  // Group patents by institution for stats table
+  // Group patents and publications by institution for stats table
   const institutionStats = Object.entries(INSTITUTION_INFO).map(([key, info]) => {
     const instPatents = patents.filter(p => p.institution === key)
+    const instPublications = publications.filter(p => p.institution === key)
+    const total = instPatents.length + instPublications.length
+    const approved = instPatents.filter(p => p.status === 'approved').length + 
+                    instPublications.filter(p => p.status === 'approved').length
+    const pending = instPatents.filter(p => p.status === 'pending').length + 
+                   instPublications.filter(p => p.status === 'pending').length
+    const rejected = instPatents.filter(p => p.status === 'rejected').length + 
+                    instPublications.filter(p => p.status === 'rejected').length
+    
     return {
       key,
       name: info.shortName,
-      total: instPatents.length,
-      approved: instPatents.filter(p => p.status === 'approved').length,
-      pending: instPatents.filter(p => p.status === 'pending').length,
-      rejected: instPatents.filter(p => p.status === 'rejected').length
+      fullName: info.fullName,
+      patents: instPatents.length,
+      publications: instPublications.length,
+      total,
+      approved,
+      pending,
+      rejected,
+      approvalRate: total > 0 ? ((approved / total) * 100).toFixed(1) : '0'
     }
-  })
+  }).sort((a, b) => b.total - a.total)
 
   return (
     <div className="dashboard-container">
@@ -1004,20 +1090,46 @@ const AdminDashboard = () => {
           {/* OVERVIEW TAB */}
           {activeTab === 'overview' && (
             <>
+              {/* Page Header */}
+              <div className="mb-4">
+                <h3 className="fw-bold mb-1">Бош саҳифа - Умумий кўриниш</h3>
+                <p className="text-muted mb-0">Тизимнинг тўлиқ статистикаси ва ҳолати</p>
+              </div>
+
               {/* Statistics Cards */}
               <Row className="g-4 mb-4">
                 {statsCards.map((stat, idx) => (
-                  <Col key={idx} xs={12} sm={6} lg={3}>
-                    <Card className="stats-card border-0 h-100">
+                  <Col key={idx} xs={12} sm={6} xl={3}>
+                    <Card className="stats-card border-0 h-100 shadow-sm hover-lift">
                       <Card.Body>
-                        <div className="d-flex justify-content-between align-items-center">
-                          <div>
-                            <p className="text-muted mb-1 small">{stat.label}</p>
-                            <h2 className="mb-0 fw-bold">{stat.value}</h2>
+                        <div className="d-flex justify-content-between align-items-start">
+                          <div className="flex-grow-1">
+                            <p className="text-muted mb-1 small text-uppercase fw-semibold" style={{ fontSize: '0.75rem' }}>
+                              {stat.label}
+                            </p>
+                            <h2 className="mb-1 fw-bold" style={{ fontSize: '2rem' }}>{stat.value}</h2>
+                            <small className="text-muted d-block mb-2" style={{ fontSize: '0.8rem' }}>
+                              {stat.subValue}
+                            </small>
+                            {stat.trend && (
+                              <Badge 
+                                bg={stat.trend.includes('керак') ? 'danger' : 'success'} 
+                                className="mt-1"
+                                style={{ fontSize: '0.7rem' }}
+                              >
+                                {stat.trend}
+                              </Badge>
+                            )}
                           </div>
                           <div 
-                            className="stats-icon" 
-                            style={{ backgroundColor: stat.bgColor, color: stat.color }}
+                            className="stats-icon rounded-3 d-flex align-items-center justify-content-center" 
+                            style={{ 
+                              backgroundColor: stat.bgColor, 
+                              color: stat.color,
+                              width: '50px',
+                              height: '50px',
+                              fontSize: '1.5rem'
+                            }}
                           >
                             <stat.icon />
                           </div>
@@ -1028,69 +1140,272 @@ const AdminDashboard = () => {
                 ))}
               </Row>
 
-              {/* Institutions Table */}
-              <Card className="border-0 shadow-sm">
-                <Card.Header className="bg-white border-bottom py-3">
-                  <h5 className="mb-0 fw-bold">
-                    <FaBuilding className="me-2 text-primary" />
-                    Муассасалар бўйича статистика
-                  </h5>
-                </Card.Header>
-                <Card.Body className="p-0">
-                  <Table responsive hover className="mb-0">
-                    <thead className="bg-light">
-                      <tr>
-                        <th className="px-4 py-3">Муассаса</th>
-                        <th className="px-4 py-3 text-center">Жами</th>
-                        <th className="px-4 py-3 text-center">Тасдиқланган</th>
-                        <th className="px-4 py-3 text-center">Кутилмоқда</th>
-                        <th className="px-4 py-3 text-center">Амаллар</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {institutionStats.map((inst) => (
-                        <tr key={inst.key}>
-                          <td className="px-4 py-3">
-                            <div className="d-flex align-items-center">
-                              <div 
-                                className="rounded-circle d-flex align-items-center justify-content-center me-3"
-                                style={{ width: 40, height: 40, backgroundColor: '#e7f1ff' }}
-                              >
-                                <FaBuilding className="text-primary" />
-                              </div>
-                              <div>
-                                <div className="fw-semibold">{inst.name}</div>
-                                <small className="text-muted">{inst.key}</small>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <Badge bg="primary" className="px-3 py-2">{inst.total}</Badge>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <Badge bg="success" className="px-3 py-2">{inst.approved}</Badge>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <Badge bg="warning" className="px-3 py-2">{inst.pending}</Badge>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <Button 
-                              variant="outline-primary" 
-                              size="sm"
-                              onClick={() => {
-                                setFilterInstitution(inst.key)
-                                setActiveTab('patents')
-                              }}
-                            >
-                              <FaEye className="me-1" /> Кўриш
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
+              {/* Quick Actions */}
+              <Card className="border-0 shadow-sm mb-4">
+                <Card.Body>
+                  <h5 className="fw-bold mb-3">Тезкор амаллар</h5>
+                  <Row className="g-3">
+                    <Col xs={12} sm={6} md={3}>
+                      <Button 
+                        variant="primary" 
+                        className="w-100 d-flex align-items-center justify-content-center py-3"
+                        onClick={handleAddPatent}
+                      >
+                        <FaPlus className="me-2" /> Патент қўшиш
+                      </Button>
+                    </Col>
+                    <Col xs={12} sm={6} md={3}>
+                      <Button 
+                        variant="info" 
+                        className="w-100 d-flex align-items-center justify-content-center py-3"
+                        onClick={handleAddPublication}
+                      >
+                        <FaBook className="me-2" /> Мақола қўшиш
+                      </Button>
+                    </Col>
+                    <Col xs={12} sm={6} md={3}>
+                      <Button 
+                        variant="success" 
+                        className="w-100 d-flex align-items-center justify-content-center py-3"
+                        onClick={handleAddUser}
+                      >
+                        <FaUsers className="me-2" /> Фойдаланувчи қўшиш
+                      </Button>
+                    </Col>
+                    <Col xs={12} sm={6} md={3}>
+                      <Button 
+                        variant="warning" 
+                        className="w-100 d-flex align-items-center justify-content-center py-3"
+                        onClick={() => setActiveTab('analytics')}
+                      >
+                        <FaChartLine className="me-2" /> Аналитика
+                      </Button>
+                    </Col>
+                  </Row>
                 </Card.Body>
               </Card>
+
+              <Row className="g-4 mb-4">
+                {/* Institutions Statistics Table */}
+                <Col lg={8}>
+                  <Card className="border-0 shadow-sm h-100">
+                    <Card.Header className="bg-white border-bottom py-3">
+                      <div className="d-flex justify-content-between align-items-center">
+                        <h5 className="mb-0 fw-bold">
+                          <FaBuilding className="me-2 text-primary" />
+                          Муассасалар бўйича статистика
+                        </h5>
+                        <Badge bg="secondary">{institutionStats.length} муассаса</Badge>
+                      </div>
+                    </Card.Header>
+                    <Card.Body className="p-0">
+                      <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                        <Table responsive hover className="mb-0">
+                          <thead className="bg-light sticky-top">
+                            <tr>
+                              <th className="px-3 py-3">#</th>
+                              <th className="px-3 py-3">Муассаса</th>
+                              <th className="px-3 py-3 text-center">Патентлар</th>
+                              <th className="px-3 py-3 text-center">Мақолалар</th>
+                              <th className="px-3 py-3 text-center">Жами</th>
+                              <th className="px-3 py-3 text-center">Тасдиқланган</th>
+                              <th className="px-3 py-3 text-center">Кутилмоқда</th>
+                              <th className="px-3 py-3 text-center">Фоиз</th>
+                              <th className="px-3 py-3 text-center">Амаллар</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {institutionStats.map((inst, idx) => (
+                              <tr key={inst.key}>
+                                <td className="px-3 py-3 text-muted fw-semibold">{idx + 1}</td>
+                                <td className="px-3 py-3">
+                                  <div className="d-flex align-items-center">
+                                    <div 
+                                      className="rounded-circle d-flex align-items-center justify-content-center me-2"
+                                      style={{ width: 35, height: 35, backgroundColor: '#e7f1ff' }}
+                                    >
+                                      <FaBuilding className="text-primary" style={{ fontSize: '0.9rem' }} />
+                                    </div>
+                                    <div>
+                                      <div className="fw-semibold" style={{ fontSize: '0.9rem' }}>{inst.name}</div>
+                                      <small className="text-muted" style={{ fontSize: '0.75rem' }}>{inst.key}</small>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-3 py-3 text-center">
+                                  <Badge bg="primary" pill className="px-2">{inst.patents}</Badge>
+                                </td>
+                                <td className="px-3 py-3 text-center">
+                                  <Badge bg="info" pill className="px-2">{inst.publications}</Badge>
+                                </td>
+                                <td className="px-3 py-3 text-center">
+                                  <Badge bg="dark" pill className="px-2 py-1 fw-bold">{inst.total}</Badge>
+                                </td>
+                                <td className="px-3 py-3 text-center">
+                                  <Badge bg="success" pill className="px-2">{inst.approved}</Badge>
+                                </td>
+                                <td className="px-3 py-3 text-center">
+                                  <Badge bg="warning" pill className="px-2">{inst.pending}</Badge>
+                                </td>
+                                <td className="px-3 py-3 text-center">
+                                  <span className="fw-semibold text-success">{inst.approvalRate}%</span>
+                                </td>
+                                <td className="px-3 py-3 text-center">
+                                  <Button 
+                                    variant="outline-primary" 
+                                    size="sm"
+                                    onClick={() => {
+                                      setFilterInstitution(inst.key)
+                                      setActiveTab('patents')
+                                    }}
+                                  >
+                                    <FaEye className="me-1" /> Кўриш
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </Table>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </Col>
+
+                {/* Recent Activity & Status Overview */}
+                <Col lg={4}>
+                  <Card className="border-0 shadow-sm mb-4">
+                    <Card.Header className="bg-white border-bottom py-3">
+                      <h5 className="mb-0 fw-bold">
+                        <FaClock className="me-2 text-warning" />
+                        Сўнгги фаолият
+                      </h5>
+                    </Card.Header>
+                    <Card.Body className="p-0">
+                      <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                        {recentActivity.length === 0 ? (
+                          <div className="text-center py-4 text-muted">
+                            Сўнгги 7 кунда фаолият йўқ
+                          </div>
+                        ) : (
+                          <div className="list-group list-group-flush">
+                            {recentActivity.map((item, idx) => (
+                              <div key={idx} className="list-group-item border-0 py-3">
+                                <div className="d-flex align-items-start">
+                                  <div 
+                                    className="rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0"
+                                    style={{ 
+                                      width: 35, 
+                                      height: 35, 
+                                      backgroundColor: item.type === 'patent' ? '#e7f1ff' : '#f7d6e6'
+                                    }}
+                                  >
+                                    {item.type === 'patent' ? (
+                                      <FaFileAlt className="text-primary" style={{ fontSize: '0.9rem' }} />
+                                    ) : (
+                                      <FaBook className="text-danger" style={{ fontSize: '0.9rem' }} />
+                                    )}
+                                  </div>
+                                  <div className="flex-grow-1">
+                                    <div className="d-flex justify-content-between align-items-start mb-1">
+                                      <Badge 
+                                        bg={item.type === 'patent' ? 'primary' : 'danger'} 
+                                        className="mb-1"
+                                        style={{ fontSize: '0.65rem' }}
+                                      >
+                                        {item.type === 'patent' ? 'Патент' : 'Мақола'}
+                                      </Badge>
+                                      <Badge 
+                                        bg={
+                                          item.status === 'approved' ? 'success' : 
+                                          item.status === 'pending' ? 'warning' : 
+                                          'danger'
+                                        }
+                                        style={{ fontSize: '0.65rem' }}
+                                      >
+                                        {item.status === 'approved' ? 'Тасдиқланган' : 
+                                         item.status === 'pending' ? 'Кутилмоқда' : 
+                                         'Рад этилган'}
+                                      </Badge>
+                                    </div>
+                                    <div className="small text-truncate fw-semibold mb-1" style={{ maxWidth: '200px' }}>
+                                      {item.title}
+                                    </div>
+                                    <small className="text-muted d-block" style={{ fontSize: '0.75rem' }}>
+                                      {item.institution_name}
+                                    </small>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </Card.Body>
+                  </Card>
+
+                  {/* Status Summary */}
+                  <Card className="border-0 shadow-sm">
+                    <Card.Header className="bg-white border-bottom py-3">
+                      <h5 className="mb-0 fw-bold">
+                        <FaChartBar className="me-2 text-success" />
+                        Ҳолат хулосаси
+                      </h5>
+                    </Card.Header>
+                    <Card.Body>
+                      <div className="mb-3">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                          <span className="text-muted small">Тасдиқланган</span>
+                          <span className="fw-bold">{totalApproved} / {totalDocuments}</span>
+                        </div>
+                        <div className="progress" style={{ height: '8px' }}>
+                          <div 
+                            className="progress-bar bg-success" 
+                            style={{ width: `${(totalApproved/totalDocuments)*100}%` }}
+                          ></div>
+                        </div>
+                        <small className="text-muted">{((totalApproved/totalDocuments)*100).toFixed(1)}%</small>
+                      </div>
+
+                      <div className="mb-3">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                          <span className="text-muted small">Кутилмоқда</span>
+                          <span className="fw-bold">{totalPending} / {totalDocuments}</span>
+                        </div>
+                        <div className="progress" style={{ height: '8px' }}>
+                          <div 
+                            className="progress-bar bg-warning" 
+                            style={{ width: `${(totalPending/totalDocuments)*100}%` }}
+                          ></div>
+                        </div>
+                        <small className="text-muted">{((totalPending/totalDocuments)*100).toFixed(1)}%</small>
+                      </div>
+
+                      <div>
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                          <span className="text-muted small">Рад этилган</span>
+                          <span className="fw-bold">{totalRejected} / {totalDocuments}</span>
+                        </div>
+                        <div className="progress" style={{ height: '8px' }}>
+                          <div 
+                            className="progress-bar bg-danger" 
+                            style={{ width: `${(totalRejected/totalDocuments)*100}%` }}
+                          ></div>
+                        </div>
+                        <small className="text-muted">{((totalRejected/totalDocuments)*100).toFixed(1)}%</small>
+                      </div>
+
+                      {totalPending > 0 && (
+                        <Alert variant="warning" className="mt-3 mb-0 py-2">
+                          <small>
+                            <FaExclamationTriangle className="me-2" />
+                            {totalPending} та ҳужжат тасдиқланишни кутмоқда
+                          </small>
+                        </Alert>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
             </>
           )}
 
