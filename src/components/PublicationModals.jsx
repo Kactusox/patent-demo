@@ -3,6 +3,7 @@ import { Modal, Button, Form, Row, Col, Badge, Table, Alert } from 'react-bootst
 import { FaTimes, FaSave, FaExternalLinkAlt, FaDownload, FaCheck, FaExclamationTriangle } from 'react-icons/fa'
 import { LANGUAGES, formatCitations, getStatusBadge } from '../utils/publicationData'
 import { INSTITUTION_INFO } from '../utils/patentData'
+import { checkDuplicatePublication } from '../services/publicationService'
 
 // ==================== ADD PUBLICATION MODAL ====================
 export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }) => {
@@ -28,8 +29,10 @@ export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submi
     file: null
   })
   const [errors, setErrors] = useState({})
+  const [duplicateWarning, setDuplicateWarning] = useState('')
+  const [checkingDuplicate, setCheckingDuplicate] = useState(false)
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     const { name, value, files } = e.target
 
     if (name === 'file') {
@@ -44,6 +47,37 @@ export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submi
       }
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
+      
+      // Check for duplicates when title, author, or year changes
+      if ((name === 'title' || name === 'authorFullName' || name === 'publicationYear') && value) {
+        const checkData = {
+          title: name === 'title' ? value : formData.title,
+          authorFullName: name === 'authorFullName' ? value : formData.authorFullName,
+          publicationYear: name === 'publicationYear' ? value : formData.publicationYear
+        }
+        
+        // Only check if all three fields have values
+        if (checkData.title && checkData.authorFullName && checkData.publicationYear) {
+          setCheckingDuplicate(true)
+          const duplicate = await checkDuplicatePublication(
+            checkData.title,
+            checkData.authorFullName,
+            checkData.publicationYear
+          )
+          setCheckingDuplicate(false)
+          
+          if (duplicate) {
+            setDuplicateWarning(
+              `⚠️ ОГОҲЛАНТИРИШ: Бу мақола аллақачон тизимда мавжуд!\n` +
+              `Муассаса: ${duplicate.institutionName}\n` +
+              `Қўшган: ${duplicate.createdBy}\n` +
+              `Илтимос, такрорий киритмасликка ишонч ҳосил қилинг.`
+            )
+          } else {
+            setDuplicateWarning('')
+          }
+        }
+      }
     }
 
     if (errors[name]) {
@@ -109,6 +143,7 @@ export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submi
       file: null
     })
     setErrors({})
+    setDuplicateWarning('')
     onHide()
   }
 
@@ -123,6 +158,23 @@ export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submi
 
       <Form onSubmit={handleSubmit}>
         <Modal.Body style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+          {/* Duplicate Warning */}
+          {duplicateWarning && (
+            <Alert variant="danger" className="mb-4">
+              <FaExclamationTriangle className="me-2" />
+              <strong>Такрорий мақола!</strong>
+              <div className="mt-2" style={{ whiteSpace: 'pre-line' }}>
+                {duplicateWarning}
+              </div>
+            </Alert>
+          )}
+          
+          {checkingDuplicate && (
+            <Alert variant="info" className="mb-4">
+              Текширилмоқда...
+            </Alert>
+          )}
+
           {/* Institution Selection for Admin */}
           {currentUser?.role === 'admin' && (
             <>
@@ -502,6 +554,8 @@ export const EditPublicationModal = ({ show, onHide, onSubmit, publication, subm
     file: null
   })
   const [errors, setErrors] = useState({})
+  const [duplicateWarning, setDuplicateWarning] = useState('')
+  const [checkingDuplicate, setCheckingDuplicate] = useState(false)
 
   // Load publication data when modal opens
   useEffect(() => {
@@ -529,7 +583,7 @@ export const EditPublicationModal = ({ show, onHide, onSubmit, publication, subm
     }
   }, [publication])
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     const { name, value, files } = e.target
 
     if (name === 'file') {
@@ -544,6 +598,37 @@ export const EditPublicationModal = ({ show, onHide, onSubmit, publication, subm
       }
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
+      
+      // Check for duplicates when title, author, or year changes (excluding current publication)
+      if ((name === 'title' || name === 'authorFullName' || name === 'publicationYear') && value) {
+        const checkData = {
+          title: name === 'title' ? value : formData.title,
+          authorFullName: name === 'authorFullName' ? value : formData.authorFullName,
+          publicationYear: name === 'publicationYear' ? value : formData.publicationYear
+        }
+        
+        // Only check if all three fields have values
+        if (checkData.title && checkData.authorFullName && checkData.publicationYear) {
+          setCheckingDuplicate(true)
+          const duplicate = await checkDuplicatePublication(
+            checkData.title,
+            checkData.authorFullName,
+            checkData.publicationYear,
+            publication?.id // Exclude current publication
+          )
+          setCheckingDuplicate(false)
+          
+          if (duplicate) {
+            setDuplicateWarning(
+              `⚠️ ОГОҲЛАНТИРИШ: Бу мақола бошқа ёзув сифатида мавжуд!\n` +
+              `Муассаса: ${duplicate.institutionName}\n` +
+              `Қўшган: ${duplicate.createdBy}`
+            )
+          } else {
+            setDuplicateWarning('')
+          }
+        }
+      }
     }
 
     if (errors[name]) {
@@ -580,6 +665,7 @@ export const EditPublicationModal = ({ show, onHide, onSubmit, publication, subm
 
   const handleClose = () => {
     setErrors({})
+    setDuplicateWarning('')
     onHide()
   }
 
@@ -596,6 +682,23 @@ export const EditPublicationModal = ({ show, onHide, onSubmit, publication, subm
 
       <Form onSubmit={handleSubmit}>
         <Modal.Body style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+          {/* Duplicate Warning */}
+          {duplicateWarning && (
+            <Alert variant="warning" className="mb-4">
+              <FaExclamationTriangle className="me-2" />
+              <strong>Такрорий мақола!</strong>
+              <div className="mt-2" style={{ whiteSpace: 'pre-line' }}>
+                {duplicateWarning}
+              </div>
+            </Alert>
+          )}
+          
+          {checkingDuplicate && (
+            <Alert variant="info" className="mb-4">
+              Текширилмоқда...
+            </Alert>
+          )}
+
           {/* Author Information */}
           <h6 className="fw-bold mb-3 text-primary">МУАЛЛИФ МАЪЛУМОТЛАРИ</h6>
           <Row className="g-3 mb-4">
