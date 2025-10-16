@@ -504,3 +504,390 @@ body {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
   transform: translateY(-4px);
 }
+
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1050;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle:hover {
+  background: var(--primary-dark);
+  transform: scale(1.05);
+}
+
+.mobile-menu-toggle:active {
+  transform: scale(0.95);
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN - MEDIA QUERIES
+   ============================================ */
+
+/* Large Desktop (1400px and up) */
+@media (min-width: 1400px) {
+  .main-content {
+    padding: 2rem 3rem;
+  }
+  
+  .container-fluid {
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+}
+
+/* Desktop (992px to 1399px) */
+@media (max-width: 1399px) {
+  .stats-card {
+    padding: 1.25rem;
+  }
+  
+  .stats-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 1.25rem;
+  }
+}
+
+/* Tablet (768px to 991px) */
+@media (max-width: 991px) {
+  .sidebar {
+    width: 220px;
+  }
+  
+  .main-content {
+    margin-left: 220px;
+  }
+  
+  .top-navbar {
+    padding: 1rem 1.5rem;
+  }
+  
+  .navbar-welcome h4 {
+    font-size: 1.25rem;
+  }
+  
+  .stats-card {
+    padding: 1rem;
+  }
+  
+  .stats-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+  
+  /* Make tables scrollable */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Mobile Landscape & Small Tablet (576px to 767px) */
+@media (max-width: 767px) {
+  /* Hide sidebar by default on mobile */
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    width: 260px;
+    z-index: 1001;
+  }
+  
+  .sidebar.active {
+    transform: translateX(0);
+  }
+  
+  /* Show mobile menu toggle */
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Adjust main content for mobile */
+  .main-content {
+    margin-left: 0;
+    padding: 0;
+  }
+  
+  .top-navbar {
+    padding: 1rem;
+    padding-left: 4rem; /* Space for hamburger menu */
+  }
+  
+  .navbar-welcome h4 {
+    font-size: 1.1rem;
+  }
+  
+  .navbar-welcome p {
+    font-size: 0.8rem;
+  }
+  
+  .navbar-actions {
+    gap: 0.5rem;
+  }
+  
+  .navbar-actions .btn {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  /* Stats cards - 2 columns on mobile */
+  .stats-card {
+    padding: 0.875rem;
+  }
+  
+  .stats-card h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  .stats-card .small {
+    font-size: 0.7rem !important;
+  }
+  
+  .stats-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+  
+  /* Table adjustments */
+  .table {
+    font-size: 0.85rem;
+  }
+  
+  .table th,
+  .table td {
+    padding: 0.5rem;
+    white-space: nowrap;
+  }
+  
+  /* Card bodies */
+  .card-body {
+    padding: 1rem;
+  }
+  
+  /* Form controls */
+  .form-control,
+  .form-select {
+    font-size: 0.9rem;
+  }
+  
+  /* Buttons */
+  .btn {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .btn-sm {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  /* Modal adjustments */
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+  
+  .modal-body {
+    max-height: 60vh !important;
+  }
+  
+  /* Login page mobile */
+  .login-card {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .logo-image {
+    width: 80px;
+    height: 80px;
+  }
+  
+  /* Hide background shapes on mobile */
+  .shape {
+    display: none;
+  }
+  
+  /* Sidebar adjustments when open */
+  .sidebar-header {
+    padding: 1rem;
+  }
+  
+  .sidebar-brand-text h5 {
+    font-size: 0.9rem;
+  }
+  
+  .sidebar-brand-text small {
+    font-size: 0.7rem;
+  }
+  
+  .nav-link {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9rem;
+  }
+  
+  .nav-icon {
+    font-size: 1.1rem;
+  }
+}
+
+/* Mobile Portrait (up to 575px) */
+@media (max-width: 575px) {
+  .top-navbar {
+    padding: 0.75rem;
+    padding-left: 3.5rem;
+  }
+  
+  .navbar-welcome h4 {
+    font-size: 1rem;
+  }
+  
+  .navbar-welcome p {
+    display: none; /* Hide subtitle on very small screens */
+  }
+  
+  .navbar-actions .btn-text {
+    display: none; /* Show only icons */
+  }
+  
+  /* Stats cards - full width on very small screens */
+  .stats-card h2 {
+    font-size: 1.35rem !important;
+  }
+  
+  /* Tables - very compact */
+  .table {
+    font-size: 0.75rem;
+  }
+  
+  .table th,
+  .table td {
+    padding: 0.375rem;
+  }
+  
+  /* Badges */
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.4rem;
+  }
+  
+  /* Card headers */
+  .card-header h5 {
+    font-size: 0.9rem;
+  }
+  
+  /* Input groups */
+  .input-group {
+    flex-wrap: wrap;
+  }
+  
+  /* Action buttons in tables */
+  .d-flex.gap-1 {
+    gap: 0.25rem !important;
+  }
+  
+  /* Modal full screen on very small devices */
+  .modal-dialog.modal-lg {
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  .modal-content {
+    min-height: 100vh;
+    border-radius: 0;
+  }
+}
+
+/* Extra Small Devices (up to 400px) */
+@media (max-width: 400px) {
+  .mobile-menu-toggle {
+    padding: 0.5rem;
+    font-size: 1.1rem;
+    top: 0.75rem;
+    left: 0.75rem;
+  }
+  
+  .top-navbar {
+    padding: 0.5rem;
+    padding-left: 3rem;
+  }
+  
+  .stats-card {
+    padding: 0.75rem;
+  }
+  
+  .stats-card h2 {
+    font-size: 1.25rem !important;
+  }
+  
+  .table {
+    font-size: 0.7rem;
+  }
+  
+  .btn {
+    font-size: 0.8rem;
+    padding: 0.375rem 0.5rem;
+  }
+}
+
+/* Landscape orientation fixes */
+@media (max-height: 500px) and (orientation: landscape) {
+  .sidebar {
+    overflow-y: auto;
+  }
+  
+  .modal-body {
+    max-height: 50vh !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .sidebar,
+  .top-navbar,
+  .btn,
+  .navbar-actions,
+  .mobile-menu-toggle {
+    display: none !important;
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+  }
+  
+  .card {
+    break-inside: avoid;
+  }
+}
