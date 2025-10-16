@@ -17,7 +17,7 @@ const initDatabase = () => {
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE NOT NULL,
+      username TEXT UNIQUE NOT NULL,s
       password TEXT NOT NULL,
       role TEXT NOT NULL CHECK(role IN ('admin', 'institution')),
       institution_name TEXT,
