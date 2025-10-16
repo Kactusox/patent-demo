@@ -25,7 +25,10 @@ const RecentActivityWidget = ({ patents, publications }) => {
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10)
 
   const formatTimeAgo = (dateString) => {
-    const date = new Date(dateString)
+    // SQLite CURRENT_TIMESTAMP returns UTC time without 'Z' suffix
+    // We need to ensure JavaScript treats it as UTC, not local time
+    const utcDateString = dateString.includes('Z') ? dateString : dateString + 'Z'
+    const date = new Date(utcDateString)
     const now = new Date()
     const diffMs = now - date
     const diffMins = Math.floor(diffMs / 60000)
@@ -33,9 +36,9 @@ const RecentActivityWidget = ({ patents, publications }) => {
     const diffDays = Math.floor(diffMs / 86400000)
     
     if (diffMins < 1) return 'Ҳозир'
-    if (diffMins < 60) return `${diffMins} дақиқа олdin`
-    if (diffHours < 24) return `${diffHours} соат олdin`
-    if (diffDays < 7) return `${diffDays} кун олdin`
+    if (diffMins < 60) return `${diffMins} дақиқа олдин`
+    if (diffHours < 24) return `${diffHours} соат олдин`
+    if (diffDays < 7) return `${diffDays} кун олдин`
     
     return date.toLocaleDateString('uz-UZ')
   }

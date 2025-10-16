@@ -175,69 +175,100 @@ const initDatabase = () => {
 
 // Insert default users
 const insertDefaultUsers = () => {
-  const users = [
-    {
-      username: 'admin',
-      password: 'admin123',
-      role: 'admin',
-      full_name: 'Система администратори',
-      phone_number: '+998901234567'
-    },
-    {
-      username: 'neftgaz',
-      password: 'neftgaz123',
-      role: 'institution',
-      institution_name: 'Нефт ва газ конлари геологияси ҳамда қидируви институти',
-      full_name: 'Нефт ва газ институти',
-      phone_number: '+998901234568'
-    },
-    {
-      username: 'mineral',
-      password: 'mineral123',
-      role: 'institution',
-      institution_name: 'Минерал ресурслар институти',
-      full_name: 'Минерал ресурслар институти',
-      phone_number: '+998901234569'
-    },
-    {
-      username: 'gidro',
-      password: 'gidro123',
-      role: 'institution',
-      institution_name: 'Гидрогеология ва инженерлик геологияси институти',
-      full_name: 'Гидрогеология институти',
-      phone_number: '+998901234570'
-    },
-    {
-      username: 'geofizika',
-      password: 'geofizika123',
-      role: 'institution',
-      institution_name: 'Ҳ.М. Абдуллаев номидаги геология ва геофизика институти',
-      full_name: 'Геофизика институти',
-      phone_number: '+998901234571'
+  // Check if users already exist
+  db.get('SELECT COUNT(*) as count FROM users', [], (err, row) => {
+    if (err) {
+      console.error('Error checking users:', err)
+      return
     }
-  ]
+    
+    // Only insert if no users exist
+    if (row.count > 0) {
+      console.log('✅ Users already exist, skipping default user insertion')
+      return
+    }
+    
+    console.log('📝 Inserting default users...')
+    const users = [
+      {
+        username: 'admin',
+        password: 'admin123',
+        role: 'admin',
+        full_name: 'Система администратори',
+        phone_number: '+998901234567'
+      },
+      {
+        username: 'neftgaz',
+        password: 'neftgaz123',
+        role: 'institution',
+        institution_name: 'Нефт ва газ конлари геологияси ҳамда қидируви институти',
+        full_name: 'Нефт ва газ институти',
+        phone_number: '+998901234568'
+      },
+      {
+        username: 'mineral',
+        password: 'mineral123',
+        role: 'institution',
+        institution_name: 'Минерал ресурслар институти',
+        full_name: 'Минерал ресурслар институти',
+        phone_number: '+998901234569'
+      },
+      {
+        username: 'gidro',
+        password: 'gidro123',
+        role: 'institution',
+        institution_name: 'Гидрогеология ва инженерлик геологияси институти',
+        full_name: 'Гидрогеология институти',
+        phone_number: '+998901234570'
+      },
+      {
+        username: 'geofizika',
+        password: 'geofizika123',
+        role: 'institution',
+        institution_name: 'Ҳ.М. Абдуллаев номидаги геология ва геофизика институти',
+        full_name: 'Геофизика институти',
+        phone_number: '+998901234571'
+      }
+    ]
 
-  const stmt = db.prepare(`
-    INSERT OR IGNORE INTO users (username, password, role, institution_name, full_name, phone_number)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `)
+    const stmt = db.prepare(`
+      INSERT INTO users (username, password, role, institution_name, full_name, phone_number)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `)
 
-  users.forEach(user => {
-    stmt.run(
-      user.username,
-      user.password,
-      user.role,
-      user.institution_name || null,
-      user.full_name,
-      user.phone_number
-    )
+    users.forEach(user => {
+      stmt.run(
+        user.username,
+        user.password,
+        user.role,
+        user.institution_name || null,
+        user.full_name,
+        user.phone_number
+      )
+    })
+
+    stmt.finalize(() => {
+      console.log('✅ Default users inserted successfully')
+    })
   })
-
-  stmt.finalize()
 }
 
 // Insert sample patents with year
 const insertSamplePatents = () => {
+  // Check if patents already exist
+  db.get('SELECT COUNT(*) as count FROM patents', [], (err, row) => {
+    if (err) {
+      console.error('Error checking patents:', err)
+      return
+    }
+    
+    // Only insert if no patents exist
+    if (row.count > 0) {
+      console.log('✅ Patents already exist, skipping sample patent insertion')
+      return
+    }
+    
+    console.log('📝 Inserting sample patents...')
   const currentYear = new Date().getFullYear()
   const patents = [
     {
@@ -397,11 +428,28 @@ const insertSamplePatents = () => {
     )
   })
 
-  stmt.finalize()
+  stmt.finalize(() => {
+    console.log('✅ Sample patents inserted successfully')
+  })
+  }) // Close db.get callback
 }
 
 // Insert sample publications - Scopus/Web of Science data
 const insertSamplePublications = () => {
+  // Check if publications already exist
+  db.get('SELECT COUNT(*) as count FROM publications', [], (err, row) => {
+    if (err) {
+      console.error('Error checking publications:', err)
+      return
+    }
+    
+    // Only insert if no publications exist
+    if (row.count > 0) {
+      console.log('✅ Publications already exist, skipping sample publication insertion')
+      return
+    }
+    
+    console.log('📝 Inserting sample publications...')
   const publications = [
     {
       author_full_name: 'Shukurov N. E.',
@@ -533,8 +581,10 @@ const insertSamplePublications = () => {
     )
   })
 
-  stmt.finalize()
-  console.log('✅ Sample publications inserted')
+  stmt.finalize(() => {
+    console.log('✅ Sample publications inserted successfully')
+  })
+  }) // Close db.get callback
 }
 
 // Helper: Log activity
