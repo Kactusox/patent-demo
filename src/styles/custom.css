@@ -305,12 +305,21 @@ body {
   border-radius: 0.75rem;
   padding: 1.5rem;
   border: 1px solid #e9ecef;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .stats-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
+}
+
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
 }
 
 .stats-icon {
