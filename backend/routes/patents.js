@@ -177,8 +177,13 @@ router.post('/', upload.single('file'), (req, res) => {
   }
 
   // Additional validation only for non-copyright types
-  if (!isCopyright && (!applicationNumber || !submissionDate)) {
-    return res.status(400).json({ error: 'Талабнома рақами ва топширилган сана керак' })
+  if (!isCopyright) {
+    if (!applicationNumber) {
+      return res.status(400).json({ error: 'Талабнома рақами керак' })
+    }
+    if (!submissionDate) {
+      return res.status(400).json({ error: 'Топширилган сана керак' })
+    }
   }
 
   // Validate year
@@ -226,8 +231,8 @@ router.post('/', upload.single('file'), (req, res) => {
       patentNumber,
       title,
       type,
-      isCopyright ? null : applicationNumber,  // NULL for copyright
-      isCopyright ? null : submissionDate,     // NULL for copyright
+      isCopyright ? patentNumber : applicationNumber,  // Use patent number for copyright
+      isCopyright ? registrationDate : submissionDate,     // Use registration date for copyright
       registrationDate,
       patentYear,
       authors,
@@ -240,7 +245,8 @@ router.post('/', upload.single('file'), (req, res) => {
     ], function(err) {
       if (err) {
         console.error('Error creating patent:', err)
-        return res.status(500).json({ error: 'Патентни сақлашда хато' })
+        console.error('Patent data:', { patentNumber, title, type, applicationNumber, submissionDate, registrationDate, year, authors })
+        return res.status(500).json({ error: 'Патентни сақлашда хато: ' + err.message })
       }
 
       res.status(201).json({
@@ -288,7 +294,7 @@ router.put('/:id', upload.single('file'), (req, res) => {
     patentNumber, 
     title, 
     type, 
-    isCopyright ? null : submissionDate,  // NULL for copyright
+    isCopyright ? registrationDate : submissionDate,  // Use registration date for copyright
     registrationDate, 
     year, 
     authors
