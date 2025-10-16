@@ -3,7 +3,7 @@ import { Row, Col, Card, Button, Badge, Table, Form, InputGroup, Modal, Alert, S
 import { 
   FaHome, FaUsers, FaFileAlt, FaCog, FaSignOutAlt, FaShieldAlt, 
   FaChartBar, FaCheckCircle, FaBuilding, FaSearch, FaEye, FaTrash,
-  FaDownload, FaClock, FaTimes, FaPlus, FaEdit, FaExclamationTriangle, FaCheck, FaKey, FaBook, FaChartLine
+  FaDownload, FaClock, FaTimes, FaPlus, FaEdit, FaExclamationTriangle, FaCheck, FaKey, FaBook, FaChartLine, FaBars
 } from 'react-icons/fa'
 import { getCurrentUser } from '../utils/auth'
 import { logout } from '../services/authService'
@@ -69,6 +69,7 @@ const AdminDashboard = () => {
   const [filterInstitution, setFilterInstitution] = useState('all')
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [patents, setPatents] = useState([])
   const [publications, setPublications] = useState([])
   const [users, setUsers] = useState([])
@@ -956,8 +957,23 @@ const AdminDashboard = () => {
 
   return (
     <div className="dashboard-container">
+      {/* Mobile Menu Toggle */}
+      <button 
+        className="mobile-menu-toggle"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        aria-label="Toggle menu"
+      >
+        <FaBars />
+      </button>
+
+      {/* Sidebar Overlay */}
+      <div 
+        className={`sidebar-overlay ${sidebarOpen ? 'active' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      ></div>
+
       {/* Sidebar */}
-      <div className="sidebar">
+      <div className={`sidebar ${sidebarOpen ? 'active' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-brand">
             <div className="sidebar-brand-icon">
@@ -976,7 +992,7 @@ const AdminDashboard = () => {
             <a 
               href="#" 
               className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={(e) => { e.preventDefault(); setActiveTab('overview'); }}
+              onClick={(e) => { e.preventDefault(); setActiveTab('overview'); setSidebarOpen(false); }}
             >
               <FaHome className="nav-icon" />
               <span>Асосий</span>
@@ -986,7 +1002,7 @@ const AdminDashboard = () => {
             <a 
               href="#" 
               className={`nav-link ${activeTab === 'patents' ? 'active' : ''}`}
-              onClick={(e) => { e.preventDefault(); setActiveTab('patents'); }}
+              onClick={(e) => { e.preventDefault(); setActiveTab('patents'); setSidebarOpen(false); }}
             >
               <FaFileAlt className="nav-icon" />
               <span>Патентлар</span>
@@ -999,7 +1015,7 @@ const AdminDashboard = () => {
             <a 
               href="#" 
               className={`nav-link ${activeTab === 'publications' ? 'active' : ''}`}
-              onClick={(e) => { e.preventDefault(); setActiveTab('publications'); }}
+              onClick={(e) => { e.preventDefault(); setActiveTab('publications'); setSidebarOpen(false); }}
             >
               <FaBook className="nav-icon" />
               <span>Илмий мақолалар</span>
@@ -1009,7 +1025,7 @@ const AdminDashboard = () => {
             <a 
               href="#" 
               className={`nav-link ${activeTab === 'analytics' ? 'active' : ''}`}
-              onClick={(e) => { e.preventDefault(); setActiveTab('analytics'); }}
+              onClick={(e) => { e.preventDefault(); setActiveTab('analytics'); setSidebarOpen(false); }}
             >
               <FaChartLine className="nav-icon" />
               <span>Аналитика</span>
@@ -1019,7 +1035,7 @@ const AdminDashboard = () => {
             <a 
               href="#" 
               className={`nav-link ${activeTab === 'users' ? 'active' : ''}`}
-              onClick={(e) => { e.preventDefault(); setActiveTab('users'); }}
+              onClick={(e) => { e.preventDefault(); setActiveTab('users'); setSidebarOpen(false); }}
             >
               <FaUsers className="nav-icon" />
               <span>Фойдаланувчилар</span>
@@ -1029,7 +1045,7 @@ const AdminDashboard = () => {
             <a 
               href="#" 
               className={`nav-link ${activeTab === 'settings' ? 'active' : ''}`}
-              onClick={(e) => { e.preventDefault(); setActiveTab('settings'); }}
+              onClick={(e) => { e.preventDefault(); setActiveTab('settings'); setSidebarOpen(false); }}
             >
               <FaCog className="nav-icon" />
               <span>Созламалар</span>

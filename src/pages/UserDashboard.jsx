@@ -3,7 +3,7 @@ import { Row, Col, Card, Button, Badge, Table, Form, Modal, Alert, InputGroup, S
 import { 
   FaHome, FaFileAlt, FaUpload, FaUser, FaSignOutAlt, FaBuilding, 
   FaCheckCircle, FaClock, FaEye, FaEdit, FaTrash, FaExclamationTriangle,
-  FaDownload, FaSave, FaTimes, FaSearch, FaBook, FaChartLine
+  FaDownload, FaSave, FaTimes, FaSearch, FaBook, FaChartLine, FaBars
 } from 'react-icons/fa'
 import { getCurrentUser } from '../utils/auth'
 import { logout } from '../services/authService'
@@ -60,6 +60,7 @@ const UserDashboard = () => {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showGlobalSearch, setShowGlobalSearch] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selectedPatent, setSelectedPatent] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(false)
@@ -591,8 +592,23 @@ const UserDashboard = () => {
 
   return (
     <div className="dashboard-container">
+      {/* Mobile Menu Toggle */}
+      <button 
+        className="mobile-menu-toggle"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        aria-label="Toggle menu"
+      >
+        <FaBars />
+      </button>
+
+      {/* Sidebar Overlay */}
+      <div 
+        className={`sidebar-overlay ${sidebarOpen ? 'active' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      ></div>
+
       {/* Sidebar */}
-      <div className="sidebar">
+      <div className={`sidebar ${sidebarOpen ? 'active' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-brand">
             <div className="sidebar-brand-icon">
@@ -619,7 +635,7 @@ const UserDashboard = () => {
             <a 
               href="#" 
               className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={(e) => { e.preventDefault(); setActiveTab('overview'); }}
+              onClick={(e) => { e.preventDefault(); setActiveTab('overview'); setSidebarOpen(false); }}
             >
               <FaHome className="nav-icon" />
               <span>Асосий</span>
@@ -629,7 +645,7 @@ const UserDashboard = () => {
             <a 
               href="#" 
               className={`nav-link ${activeTab === 'documents' ? 'active' : ''}`}
-              onClick={(e) => { e.preventDefault(); setActiveTab('documents'); }}
+              onClick={(e) => { e.preventDefault(); setActiveTab('documents'); setSidebarOpen(false); }}
             >
               <FaFileAlt className="nav-icon" />
               <span>Менинг ҳужжатларим</span>
@@ -642,7 +658,7 @@ const UserDashboard = () => {
             <a 
               href="#" 
               className={`nav-link ${activeTab === 'upload' ? 'active' : ''}`}
-              onClick={(e) => { e.preventDefault(); setShowUploadModal(true); }}
+              onClick={(e) => { e.preventDefault(); setShowUploadModal(true); setSidebarOpen(false); }}
             >
               <FaUpload className="nav-icon" />
               <span>Янги қўшиш</span>
@@ -652,7 +668,7 @@ const UserDashboard = () => {
             <a 
               href="#" 
               className={`nav-link ${activeTab === 'publications' ? 'active' : ''}`}
-              onClick={(e) => { e.preventDefault(); setActiveTab('publications'); }}
+              onClick={(e) => { e.preventDefault(); setActiveTab('publications'); setSidebarOpen(false); }}
             >
               <FaBook className="nav-icon" />
               <span>Илмий мақолалар</span>
@@ -662,7 +678,7 @@ const UserDashboard = () => {
             <a 
               href="#" 
               className={`nav-link ${activeTab === 'analytics' ? 'active' : ''}`}
-              onClick={(e) => { e.preventDefault(); setActiveTab('analytics'); }}
+              onClick={(e) => { e.preventDefault(); setActiveTab('analytics'); setSidebarOpen(false); }}
             >
               <FaChartLine className="nav-icon" />
               <span>Аналитика</span>
@@ -672,7 +688,7 @@ const UserDashboard = () => {
             <a 
               href="#" 
               className={`nav-link ${activeTab === 'profile' ? 'active' : ''}`}
-              onClick={(e) => { e.preventDefault(); setActiveTab('profile'); }}
+              onClick={(e) => { e.preventDefault(); setActiveTab('profile'); setSidebarOpen(false); }}
             >
               <FaUser className="nav-icon" />
               <span>Профил</span>
