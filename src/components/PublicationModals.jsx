@@ -113,7 +113,7 @@ export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submi
     const publicationData = {
       ...formData,
       institution: selectedInst,
-      institutionName: INSTITUTION_INFO[selectedInst]?.fullName || currentUser?.fullName || '',
+      institutionName: INSTITUTION_INFO[selectedInst]?.name || currentUser?.fullName || '',
       createdBy: currentUser?.username || 'unknown'
     }
 
@@ -191,7 +191,7 @@ export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submi
                     >
                       {Object.entries(INSTITUTION_INFO).map(([key, info]) => (
                         <option key={key} value={key}>
-                          {info.fullName}
+                          {info.name}
                         </option>
                       ))}
                     </Form.Select>
