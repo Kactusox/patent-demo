@@ -4,7 +4,7 @@ import { FaTimes } from 'react-icons/fa'
 import { LANGUAGES } from '../utils/publicationData'
 import { INSTITUTION_INFO } from '../utils/patentData'
 
-const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }) => {
+const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting, institutions = [] }) => {
   const fileInputRef = useRef(null)
   const [formData, setFormData] = useState({
     authorFullName: '',
@@ -120,10 +120,15 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
 
     // Prepare data for submission
     const selectedInst = currentUser.role === 'admin' ? formData.institution : currentUser.name
+    
+    // Get institution name from institutions array or user's institution
+    const selectedInstitution = institutions.find(inst => inst.username === selectedInst)
+    const instName = selectedInstitution?.institution_name || currentUser.institutionName || 'Unknown Institution'
+    
     const publicationData = {
       ...formData,
       institution: selectedInst,
-      institutionName: INSTITUTION_INFO[selectedInst]?.name || currentUser.institutionName || 'Unknown Institution',
+      institutionName: instName,
       createdBy: currentUser.username
     }
 
@@ -181,11 +186,15 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
                       onChange={handleChange}
                       disabled={submitting}
                     >
-                      {Object.entries(INSTITUTION_INFO).map(([key, info]) => (
-                        <option key={key} value={key}>
-                          {info.name}
-                        </option>
-                      ))}
+                      {institutions.length > 0 ? (
+                        institutions.map(inst => (
+                          <option key={inst.username} value={inst.username}>
+                            {inst.institution_name}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">Муассаса топилмади</option>
+                      )}
                     </Form.Select>
                   </Form.Group>
                 </Col>

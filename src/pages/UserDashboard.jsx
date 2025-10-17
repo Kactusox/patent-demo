@@ -26,6 +26,7 @@ import {
   updatePublication,
   deletePublication
 } from '../services/publicationService'
+import { getInstitutions } from '../services/userService'
 import { 
   AddPublicationModal,
   EditPublicationModal,
@@ -112,6 +113,7 @@ const UserDashboard = () => {
   useEffect(() => {
     loadPatents()
     loadPublicationsData()
+    loadInstitutions()
   }, [])
   
   // Load publications data
@@ -2104,6 +2106,7 @@ const UserDashboard = () => {
         onSubmit={handleSubmitPublication}
         currentUser={currentUser}
         submitting={publicationSubmitting}
+        institutions={institutions}
       />
 
       <EditPublicationModal

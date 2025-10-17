@@ -47,7 +47,17 @@ const PublicationsDashboard = () => {
   // Load data
   useEffect(() => {
     loadData()
+    loadInstitutions()
   }, [])
+
+  const loadInstitutions = async () => {
+    try {
+      const data = await getInstitutions()
+      setInstitutions(data)
+    } catch (error) {
+      console.error('Error loading institutions:', error)
+    }
+  }
 
   const loadData = async () => {
     try {
@@ -651,6 +661,7 @@ const PublicationsDashboard = () => {
         onSubmit={handleAddPublication}
         currentUser={currentUser}
         submitting={submitting}
+        institutions={institutions}
       />
 
       {/* Edit Publication Modal */}
