@@ -23,7 +23,8 @@ import {
   updateUser, 
   deleteUser,
   resetUserPassword,
-  getActivityLogs
+  getActivityLogs,
+  getInstitutions
 } from '../services/userService'
 import { downloadZipFile, exportToExcel, getExportStats } from '../services/exportService'
 import { INSTITUTION_INFO, PATENT_TYPES } from '../utils/patentData'
@@ -73,6 +74,7 @@ const AdminDashboard = () => {
   const [patents, setPatents] = useState([])
   const [publications, setPublications] = useState([])
   const [users, setUsers] = useState([])
+  const [institutions, setInstitutions] = useState([])
   const [activityLogs, setActivityLogs] = useState([])
   const [stats, setStats] = useState({
     total: 0,
@@ -186,6 +188,15 @@ const AdminDashboard = () => {
       setUsers(allUsers)
     } catch (error) {
       console.error('Error loading users:', error)
+    }
+  }
+
+  const loadInstitutions = async () => {
+    try {
+      const allInstitutions = await getInstitutions()
+      setInstitutions(allInstitutions)
+    } catch (error) {
+      console.error('Error loading institutions:', error)
     }
   }
 
@@ -930,9 +941,9 @@ const AdminDashboard = () => {
   ]
 
   // Group patents and publications by institution for stats table
-  const institutionStats = Object.entries(INSTITUTION_INFO).map(([key, info]) => {
-    const instPatents = patents.filter(p => p.institution === key)
-    const instPublications = publications.filter(p => p.institution === key)
+  const institutionStats = institutions.map(inst => {
+    const instPatents = patents.filter(p => p.institution === inst.username)
+    const instPublications = publications.filter(p => p.institution === inst.username)
     const total = instPatents.length + instPublications.length
     const approved = instPatents.filter(p => p.status === 'approved').length + 
                     instPublications.filter(p => p.status === 'approved').length
@@ -942,9 +953,9 @@ const AdminDashboard = () => {
                     instPublications.filter(p => p.status === 'rejected').length
     
     return {
-      key,
-      name: info.shortName,
-      fullName: info.fullName,
+      key: inst.username,
+      name: inst.institution_name,
+      fullName: inst.institution_name,
       patents: instPatents.length,
       publications: instPublications.length,
       total,
@@ -2832,6 +2843,7 @@ const AdminDashboard = () => {
         onSubmit={handleSubmitPublication}
         currentUser={currentUser}
         submitting={publicationSubmitting}
+        institutions={institutions}
       />
 
       <EditPublicationModal
