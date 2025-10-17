@@ -139,6 +139,11 @@ router.post('/check-duplicate', (req, res) => {
 
 // CREATE new publication
 router.post('/', upload.single('file'), (req, res) => {
+  console.log('=== Publication Creation Request ===')
+  console.log('Has file:', !!req.file)
+  console.log('Body keys:', Object.keys(req.body))
+  console.log('Body data:', req.body)
+  
   const {
     authorFullName,
     authorOrcid,
@@ -163,8 +168,15 @@ router.post('/', upload.single('file'), (req, res) => {
   } = req.body
   
   // Validation
-  if (!authorFullName || !title || !publicationYear || !institution) {
-    return res.status(400).json({ error: 'Барча зарур майдонларни тўлдиринг' })
+  if (!authorFullName || !title || !publicationYear || !institution || !institutionName) {
+    console.error('Validation failed:', { 
+      authorFullName: !!authorFullName, 
+      title: !!title, 
+      publicationYear: !!publicationYear, 
+      institution: !!institution,
+      institutionName: !!institutionName
+    })
+    return res.status(400).json({ error: 'Барча зарур майдонларни тўлдиринг (institution name киритинг)' })
   }
   
   // Validate year
@@ -218,10 +230,22 @@ router.post('/', upload.single('file'), (req, res) => {
     createdBy
   ], function(err) {
     if (err) {
-      console.error('Error creating publication:', err)
-      console.error('Publication data:', { authorFullName, title, publicationYear, institution, filePath })
+      console.error('❌ Database error creating publication:', err)
+      console.error('Error code:', err.code)
+      console.error('Error message:', err.message)
+      console.error('Publication data:', { 
+        authorFullName, 
+        title, 
+        publicationYear, 
+        institution, 
+        institutionName,
+        filePath,
+        fileName 
+      })
       return res.status(500).json({ error: 'Мақолани сақлашда хато: ' + err.message })
     }
+    
+    console.log('✅ Publication created successfully, ID:', this.lastID)
     
     // Log activity
     logActivity(null, createdBy, 'CREATE_PUBLICATION', `Created publication: ${title}`)
