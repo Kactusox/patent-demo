@@ -136,6 +136,15 @@ const UserDashboard = () => {
     }
   }
 
+  const loadInstitutions = async () => {
+    try {
+      const data = await getInstitutions()
+      setInstitutions(data)
+    } catch (error) {
+      console.error('Error loading institutions:', error)
+    }
+  }
+
   // Publication CRUD handlers
   const handleAddPublication = () => {
     setShowAddPublicationModal(true)
