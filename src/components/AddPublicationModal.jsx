@@ -123,7 +123,7 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
     const publicationData = {
       ...formData,
       institution: selectedInst,
-      institutionName: INSTITUTION_INFO[selectedInst]?.name || currentUser.fullName,
+      institutionName: INSTITUTION_INFO[selectedInst]?.name || currentUser.institutionName || 'Unknown Institution',
       createdBy: currentUser.username
     }
 
