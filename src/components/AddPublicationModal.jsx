@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { Modal, Button, Form, Row, Col, Alert } from 'react-bootstrap'
 import { FaTimes } from 'react-icons/fa'
 import { LANGUAGES } from '../utils/publicationData'
-import { INSTITUTION_INFO } from '../utils/patentData'
 
 const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting, institutions = [] }) => {
   const fileInputRef = useRef(null)

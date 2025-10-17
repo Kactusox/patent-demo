@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { Modal, Button, Form, Row, Col, Badge, Table, Alert } from 'react-bootstrap'
 import { FaTimes, FaSave, FaExternalLinkAlt, FaDownload, FaCheck, FaExclamationTriangle } from 'react-icons/fa'
 import { LANGUAGES, formatCitations, getStatusBadge } from '../utils/publicationData'
-import { INSTITUTION_INFO } from '../utils/patentData'
 import { checkDuplicatePublication } from '../services/publicationService'
 
 // ==================== ADD PUBLICATION MODAL ====================

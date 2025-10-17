@@ -27,7 +27,7 @@ import {
   getInstitutions
 } from '../services/userService'
 import { downloadZipFile, exportToExcel, getExportStats } from '../services/exportService'
-import { INSTITUTION_INFO, PATENT_TYPES } from '../utils/patentData'
+import { PATENT_TYPES } from '../utils/patentData'
 import { 
   AddUserModal, 
   EditUserModal, 
@@ -878,7 +878,7 @@ const AdminDashboard = () => {
     },
     { 
       label: 'Муассасалар', 
-      value: Object.keys(INSTITUTION_INFO).length.toString(), 
+      value: institutions.length.toString(), 
       subValue: `${users.filter(u => u.role === 'institution').length} актив фойдаланувчи`,
       icon: FaBuilding, 
       color: '#198754',
