@@ -37,8 +37,11 @@ export const createPublication = async (publicationData, file) => {
   try {
     const formData = new FormData()
     
-    // Add all publication fields
+    // Add all publication fields (excluding 'file' which is handled separately)
     Object.keys(publicationData).forEach(key => {
+      // Skip the 'file' key as it's a File object and handled separately below
+      if (key === 'file') return
+      
       if (publicationData[key] !== null && publicationData[key] !== undefined && publicationData[key] !== '') {
         formData.append(key, publicationData[key])
       }
@@ -71,8 +74,11 @@ export const updatePublication = async (id, publicationData, file) => {
   try {
     const formData = new FormData()
     
-    // Add all publication fields
+    // Add all publication fields (excluding 'file' which is handled separately)
     Object.keys(publicationData).forEach(key => {
+      // Skip the 'file' key as it's a File object and handled separately below
+      if (key === 'file') return
+      
       if (publicationData[key] !== null && publicationData[key] !== undefined && publicationData[key] !== '') {
         formData.append(key, publicationData[key])
       }

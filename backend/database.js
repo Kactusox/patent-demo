@@ -254,11 +254,11 @@ const insertDefaultUsers = () => {
 // Helper: Log activity
 const logActivity = (userId, username, action, details, ipAddress = null) => {
   const query = `
-    INSERT INTO activity_logs (user_id, username, action, details, ip_address)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO activity_logs (user_id, action, details, ip_address)
+    VALUES (?, ?, ?, ?)
   `
   
-  db.run(query, [userId, username, action, details, ipAddress], (err) => {
+  db.run(query, [userId, action, details, ipAddress], (err) => {
     if (err) {
       console.error('Error logging activity:', err)
     }
