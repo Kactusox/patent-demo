@@ -290,7 +290,7 @@ const PublicationsDashboard = () => {
                 <Card.Body className="text-center">
                   <FaQuoteRight className="text-info mb-2" size={32} />
                   <h3 className="fw-bold mb-1">{formatCitations(stats.total_citations || 0)}</h3>
-                  <p className="text-muted mb-0">Жами iqtiboslar</p>
+                  <p className="text-muted mb-0">Жами иқтибослар</p>
                 </Card.Body>
               </Card>
             </Col>
@@ -361,7 +361,7 @@ const PublicationsDashboard = () => {
                     <th>№</th>
                     <th>Муаллиф</th>
                     <th className="text-center">Мақолалар</th>
-                    <th className="text-center">Iqtiboslar</th>
+                    <th className="text-center">Иқтибослар</th>
                     <th className="text-center">h-индекс</th>
                     <th className="text-center">Профил</th>
                   </tr>
@@ -488,7 +488,7 @@ const PublicationsDashboard = () => {
                           <td>
                             <div className="fw-semibold">{pub.author_full_name}</div>
                             <small className="text-muted">
-                              {pub.total_articles} мақола • {formatCitations(pub.total_citations)} iqtibos • h={pub.h_index}
+                              {pub.total_articles} мақола • {formatCitations(pub.total_citations)} иқтибос • h={pub.h_index}
                             </small>
                           </td>
                           <td>
@@ -615,7 +615,7 @@ const PublicationsDashboard = () => {
                     <Col xs={4}>
                       <div className="text-center p-2 bg-light rounded">
                         <div className="fw-bold text-info">{formatCitations(author.total_citations)}</div>
-                        <small className="text-muted">Iqtibос</small>
+                        <small className="text-muted">Иқтибос</small>
                       </div>
                     </Col>
                     <Col xs={4}>

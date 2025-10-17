@@ -157,7 +157,7 @@ const AnalyticsCharts = ({ patents, publications }) => {
             <Card.Header className="bg-white border-bottom py-3">
               <h6 className="mb-0 fw-semibold">
                 <FaChartLine className="me-2 text-info" />
-                Iqtiboslar динамикаси
+                Иқтибослар динамикаси
               </h6>
             </Card.Header>
             <Card.Body>
@@ -223,7 +223,7 @@ const AnalyticsCharts = ({ patents, publications }) => {
             <Card.Header className="bg-white border-bottom py-3">
               <h6 className="mb-0 fw-semibold">
                 <FaChartBar className="me-2 text-purple" style={{ color: '#6f42c1' }} />
-                Топ муаллифлар (iqtiboslar)
+                Топ муаллифлар (иқтибослар)
               </h6>
             </Card.Header>
             <Card.Body>

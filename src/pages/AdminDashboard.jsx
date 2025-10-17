@@ -1932,7 +1932,7 @@ const AdminDashboard = () => {
                                 <td className="px-4 py-3">
                                   <div className="fw-semibold">{pub.author_full_name}</div>
                                   <small className="text-muted">
-                                    {pub.total_articles} мақола • {formatCitations(pub.total_citations)} iqtibос • h={pub.h_index}
+                                    {pub.total_articles} мақола • {formatCitations(pub.total_citations)} иқтибос • h={pub.h_index}
                                   </small>
                                 </td>
                                 <td className="px-4 py-3">

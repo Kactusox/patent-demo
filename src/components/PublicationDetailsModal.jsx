@@ -26,7 +26,7 @@ const PublicationDetailsModal = ({ show, onHide, publication }) => {
                 <h5 className="fw-bold mb-2">{publication.author_full_name}</h5>
                 <div className="d-flex gap-3 mb-2">
                   <Badge bg="primary">{publication.total_articles} мақола</Badge>
-                  <Badge bg="info">{formatCitations(publication.total_citations)} iqtibос</Badge>
+                  <Badge bg="info">{formatCitations(publication.total_citations)} иқтибос</Badge>
                   <Badge bg="success">h-индекс: {publication.h_index}</Badge>
                 </div>
                 {publication.author_orcid && (

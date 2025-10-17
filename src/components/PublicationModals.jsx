@@ -237,7 +237,7 @@ export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submi
 
             <Col md={4}>
               <Form.Group>
-                <Form.Label>Жами iqtiboslar</Form.Label>
+                <Form.Label>Жами иқтибослар</Form.Label>
                 <Form.Control
                   type="number"
                   name="totalCitations"
@@ -433,7 +433,7 @@ export const ViewPublicationModal = ({ show, onHide, publication }) => {
                 <h5 className="fw-bold mb-2">{publication.author_full_name}</h5>
                 <div className="d-flex gap-3 mb-2">
                   <Badge bg="primary">{publication.total_articles || 0} мақола</Badge>
-                  <Badge bg="info">{formatCitations(publication.total_citations || 0)} iqtibос</Badge>
+                  <Badge bg="info">{formatCitations(publication.total_citations || 0)} иқтибос</Badge>
                   <Badge bg="success">h-индекс: {publication.h_index || 0}</Badge>
                 </div>
                 {publication.author_orcid && (
@@ -733,7 +733,7 @@ export const EditPublicationModal = ({ show, onHide, onSubmit, publication, subm
 
             <Col md={4}>
               <Form.Group>
-                <Form.Label>Жами iqtiboslar</Form.Label>
+                <Form.Label>Жами иқтибослар</Form.Label>
                 <Form.Control
                   type="number"
                   name="totalCitations"

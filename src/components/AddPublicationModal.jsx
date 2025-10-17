@@ -199,7 +199,7 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
 
             <Col md={4}>
               <Form.Group>
-                <Form.Label>Жами iqtiboslar</Form.Label>
+                <Form.Label>Жами иқтибослар</Form.Label>
                 <Form.Control
                   type="number"
                   name="totalCitations"

@@ -260,7 +260,7 @@ const UserDashboard = () => {
       bgColor: '#f3ebff'
     },
     { 
-      label: 'Iqtiboslar', 
+      label: 'Иқтибослар', 
       value: formatCitations(publicationStats.total_citations || 0), 
       icon: FaClock, 
       color: '#17a2b8',
@@ -844,7 +844,7 @@ const UserDashboard = () => {
                         <Badge bg="purple" className="fs-6" style={{ backgroundColor: '#6f42c1' }}>{publicationStats.total || 0}</Badge>
                       </div>
                       <div className="d-flex justify-content-between align-items-center mb-3">
-                        <span>Жами iqtiboslar:</span>
+                        <span>Жами иқтибослар:</span>
                         <Badge bg="info" className="fs-6">{formatCitations(publicationStats.total_citations || 0)}</Badge>
                       </div>
                       <div className="d-flex justify-content-between align-items-center">
@@ -1270,7 +1270,7 @@ const UserDashboard = () => {
                                 <td className="px-4 py-3">
                                   <div className="fw-semibold">{pub.author_full_name}</div>
                                   <small className="text-muted">
-                                    {pub.total_articles} мақола • {formatCitations(pub.total_citations)} iqtibос • h={pub.h_index}
+                                    {pub.total_articles} мақола • {formatCitations(pub.total_citations)} иқтибос • h={pub.h_index}
                                   </small>
                                 </td>
                                 <td className="px-4 py-3">
