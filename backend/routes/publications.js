@@ -138,123 +138,136 @@ router.post('/check-duplicate', (req, res) => {
 })
 
 // CREATE new publication
-router.post('/', upload.single('file'), (req, res) => {
-  console.log('=== Publication Creation Request ===')
-  console.log('Has file:', !!req.file)
-  console.log('Body keys:', Object.keys(req.body))
-  console.log('Body data:', req.body)
-  
-  const {
-    authorFullName,
-    authorOrcid,
-    scopusAuthorId,
-    scopusProfileUrl,
-    wosProfileUrl,
-    googleScholarUrl,
-    totalArticles,
-    totalCitations,
-    hIndex,
-    title,
-    publicationYear,
-    journalName,
-    language,
-    sjr,
-    coAuthors,
-    keywords,
-    abstract,
-    institution,
-    institutionName,
-    createdBy
-  } = req.body
-  
-  // Validation
-  if (!authorFullName || !title || !publicationYear || !institution || !institutionName) {
-    console.error('Validation failed:', { 
-      authorFullName: !!authorFullName, 
-      title: !!title, 
-      publicationYear: !!publicationYear, 
-      institution: !!institution,
-      institutionName: !!institutionName
-    })
-    return res.status(400).json({ error: 'Барча зарур майдонларни тўлдиринг (institution name киритинг)' })
-  }
-  
-  // Validate year
-  const currentYear = new Date().getFullYear()
-  const pubYear = parseInt(publicationYear)
-  
-  if (isNaN(pubYear) || pubYear < 1900 || pubYear > currentYear + 1) {
-    return res.status(400).json({ 
-      error: `Йил 1900 дан ${currentYear + 1} гача бўлиши керак` 
-    })
-  }
-  
-  // Insert publication
-  const query = `
-    INSERT INTO publications (
-      author_full_name, author_orcid, scopus_author_id, scopus_profile_url,
-      wos_profile_url, google_scholar_url, total_articles, total_citations, h_index,
-      title, publication_year, journal_name, publication_type, language,
-      sjr, co_authors, keywords, abstract,
-      institution, institution_name, status, file_path, file_name, created_by
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `
-  
-  const filePath = req.file ? `/uploads/${req.file.filename}` : null
-  const fileName = req.file ? req.file.originalname : null
-  
-  db.run(query, [
-    authorFullName,
-    authorOrcid || null,
-    scopusAuthorId || null,
-    scopusProfileUrl || null,
-    wosProfileUrl || null,
-    googleScholarUrl || null,
-    parseInt(totalArticles) || 0,
-    parseInt(totalCitations) || 0,
-    parseInt(hIndex) || 0,
-    title,
-    pubYear,
-    journalName || null,
-    'Илмий мақола', // Default type
-    language || 'English',
-    parseFloat(sjr) || null,
-    coAuthors || null,
-    keywords || null,
-    abstract || null,
-    institution,
-    institutionName,
-    'pending', // Default status
-    filePath,
-    fileName,
-    createdBy
-  ], function(err) {
+router.post('/', (req, res) => {
+  // Handle file upload with error catching
+  upload.single('file')(req, res, (err) => {
     if (err) {
-      console.error('❌ Database error creating publication:', err)
-      console.error('Error code:', err.code)
-      console.error('Error message:', err.message)
-      console.error('Publication data:', { 
-        authorFullName, 
-        title, 
-        publicationYear, 
-        institution, 
-        institutionName,
-        filePath,
-        fileName 
-      })
-      return res.status(500).json({ error: 'Мақолани сақлашда хато: ' + err.message })
+      console.error('❌ Multer error:', err)
+      return res.status(400).json({ error: 'Файлни юклашда хато: ' + err.message })
     }
     
-    console.log('✅ Publication created successfully, ID:', this.lastID)
-    
-    // Log activity
-    logActivity(null, createdBy, 'CREATE_PUBLICATION', `Created publication: ${title}`)
-    
-    res.json({
-      success: true,
-      message: 'Мақола муваффақиятли қўшилди',
-      publicationId: this.lastID
-    })
+    try {
+      console.log('=== Publication Creation Request ===')
+      console.log('Has file:', !!req.file)
+      console.log('Body keys:', Object.keys(req.body))
+      console.log('Body data:', req.body)
+  
+      const {
+        authorFullName,
+        authorOrcid,
+        scopusAuthorId,
+        scopusProfileUrl,
+        wosProfileUrl,
+        googleScholarUrl,
+        totalArticles,
+        totalCitations,
+        hIndex,
+        title,
+        publicationYear,
+        journalName,
+        language,
+        sjr,
+        coAuthors,
+        keywords,
+        abstract,
+        institution,
+        institutionName,
+        createdBy
+      } = req.body
+      
+      // Validation
+      if (!authorFullName || !title || !publicationYear || !institution || !institutionName) {
+        console.error('Validation failed:', { 
+          authorFullName: !!authorFullName, 
+          title: !!title, 
+          publicationYear: !!publicationYear, 
+          institution: !!institution,
+          institutionName: !!institutionName
+        })
+        return res.status(400).json({ error: 'Барча зарур майдонларни тўлдиринг (institution name киритинг)' })
+      }
+  
+      // Validate year
+      const currentYear = new Date().getFullYear()
+      const pubYear = parseInt(publicationYear)
+      
+      if (isNaN(pubYear) || pubYear < 1900 || pubYear > currentYear + 1) {
+        return res.status(400).json({ 
+          error: `Йил 1900 дан ${currentYear + 1} гача бўлиши керак` 
+        })
+      }
+      
+      // Insert publication
+      const query = `
+        INSERT INTO publications (
+          author_full_name, author_orcid, scopus_author_id, scopus_profile_url,
+          wos_profile_url, google_scholar_url, total_articles, total_citations, h_index,
+          title, publication_year, journal_name, publication_type, language,
+          sjr, co_authors, keywords, abstract,
+          institution, institution_name, status, file_path, file_name, created_by
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `
+      
+      const filePath = req.file ? `/uploads/${req.file.filename}` : null
+      const fileName = req.file ? req.file.originalname : null
+      
+      db.run(query, [
+        authorFullName,
+        authorOrcid || null,
+        scopusAuthorId || null,
+        scopusProfileUrl || null,
+        wosProfileUrl || null,
+        googleScholarUrl || null,
+        parseInt(totalArticles) || 0,
+        parseInt(totalCitations) || 0,
+        parseInt(hIndex) || 0,
+        title,
+        pubYear,
+        journalName || null,
+        'Илмий мақола', // Default type
+        language || 'English',
+        parseFloat(sjr) || null,
+        coAuthors || null,
+        keywords || null,
+        abstract || null,
+        institution,
+        institutionName,
+        'pending', // Default status
+        filePath,
+        fileName,
+        createdBy
+      ], function(err) {
+        if (err) {
+          console.error('❌ Database error creating publication:', err)
+          console.error('Error code:', err.code)
+          console.error('Error message:', err.message)
+          console.error('Publication data:', { 
+            authorFullName, 
+            title, 
+            publicationYear, 
+            institution, 
+            institutionName,
+            filePath,
+            fileName 
+          })
+          return res.status(500).json({ error: 'Мақолани сақлашда хато: ' + err.message })
+        }
+        
+        console.log('✅ Publication created successfully, ID:', this.lastID)
+        
+        // Log activity
+        logActivity(null, createdBy, 'CREATE_PUBLICATION', `Created publication: ${title}`)
+        
+        res.json({
+          success: true,
+          message: 'Мақола муваффақиятли қўшилди',
+          publicationId: this.lastID
+        })
+      })
+    } catch (error) {
+      console.error('❌ Unexpected error in publication creation:', error)
+      return res.status(500).json({ error: 'Тизимда хато: ' + error.message })
+    }
   })
 })
 
