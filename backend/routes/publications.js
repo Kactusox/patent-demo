@@ -219,7 +219,8 @@ router.post('/', upload.single('file'), (req, res) => {
   ], function(err) {
     if (err) {
       console.error('Error creating publication:', err)
-      return res.status(500).json({ error: 'Мақолани сақлашда хато' })
+      console.error('Publication data:', { authorFullName, title, publicationYear, institution, filePath })
+      return res.status(500).json({ error: 'Мақолани сақлашда хато: ' + err.message })
     }
     
     // Log activity

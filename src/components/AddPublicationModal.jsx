@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Modal, Button, Form, Row, Col, Alert } from 'react-bootstrap'
 import { FaTimes } from 'react-icons/fa'
 import { LANGUAGES } from '../utils/publicationData'
 import { INSTITUTION_INFO } from '../utils/patentData'
 
 const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }) => {
+  const fileInputRef = useRef(null)
   const [formData, setFormData] = useState({
     authorFullName: '',
     authorOrcid: '',
@@ -28,6 +29,38 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
   })
 
   const [errors, setErrors] = useState({})
+
+  // Reset form when modal is closed
+  useEffect(() => {
+    if (!show) {
+      setFormData({
+        authorFullName: '',
+        authorOrcid: '',
+        scopusAuthorId: '',
+        scopusProfileUrl: '',
+        wosProfileUrl: '',
+        googleScholarUrl: '',
+        totalArticles: '',
+        totalCitations: '',
+        hIndex: '',
+        title: '',
+        publicationYear: new Date().getFullYear(),
+        journalName: '',
+        language: 'English',
+        sjr: '',
+        coAuthors: '',
+        keywords: '',
+        abstract: '',
+        institution: currentUser.role === 'admin' ? 'neftgaz' : currentUser.name,
+        file: null
+      })
+      setErrors({})
+      // Clear file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }, [show, currentUser])
 
   const handleChange = (e) => {
     const { name, value, files } = e.target
@@ -354,6 +387,7 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }
                 <Form.Control
                   type="file"
                   name="file"
+                  ref={fileInputRef}
                   onChange={handleChange}
                   accept=".pdf,.jpg,.jpeg,.png"
                   disabled={submitting}
