@@ -878,7 +878,7 @@ const AdminDashboard = () => {
     },
     { 
       label: 'Муассасалар', 
-      value: institutions.length.toString(), 
+      value: (institutions?.length || 0).toString(), 
       subValue: `${users.filter(u => u.role === 'institution').length} актив фойдаланувчи`,
       icon: FaBuilding, 
       color: '#198754',
