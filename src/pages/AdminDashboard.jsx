@@ -777,7 +777,8 @@ const AdminDashboard = () => {
 
     setSubmitting(true)
     try {
-      const institutionInfo = INSTITUTION_INFO[patentFormData.institution]
+      // Get institution name from institutions array
+      const selectedInstitution = institutions.find(inst => inst.username === patentFormData.institution)
       
       const patentData = {
         patentNumber: patentFormData.patentNumber,
@@ -789,7 +790,7 @@ const AdminDashboard = () => {
         year: patentFormData.year,
         authors: patentFormData.authors,
         institution: patentFormData.institution,
-        institutionName: institutionInfo?.fullName || institutionInfo?.shortName,
+        institutionName: selectedInstitution?.institution_name || '',
         createdBy: currentUser.username
       }
 
@@ -1617,7 +1618,7 @@ const AdminDashboard = () => {
                                   <small className="text-muted">{patent.type}</small>
                                 </td>
                                 <td className="px-4 py-3">
-                                  <small>{INSTITUTION_INFO[patent.institution]?.shortName}</small>
+                                  <small>{patent.institution_name}</small>
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                   {patent.status === 'approved' && (
@@ -1957,7 +1958,7 @@ const AdminDashboard = () => {
                                   <small className="text-muted">{pub.journal_name || 'N/A'}</small>
                                 </td>
                                 <td className="px-4 py-3">
-                                  <small>{INSTITUTION_INFO[pub.institution]?.shortName}</small>
+                                  <small>{pub.institution_name}</small>
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                   {pub.status === 'approved' && (
