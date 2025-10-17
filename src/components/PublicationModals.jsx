@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Modal, Button, Form, Row, Col, Badge, Table, Alert } from 'react-bootstrap'
 import { FaTimes, FaSave, FaExternalLinkAlt, FaDownload, FaCheck, FaExclamationTriangle } from 'react-icons/fa'
 import { LANGUAGES, formatCitations, getStatusBadge } from '../utils/publicationData'
@@ -31,6 +31,41 @@ export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submi
   const [errors, setErrors] = useState({})
   const [duplicateWarning, setDuplicateWarning] = useState('')
   const [checkingDuplicate, setCheckingDuplicate] = useState(false)
+  const fileInputRef = useRef(null)
+
+  // Reset form when modal is closed
+  useEffect(() => {
+    if (!show) {
+      // Reset form data when modal closes
+      setFormData({
+        authorFullName: '',
+        authorOrcid: '',
+        scopusAuthorId: '',
+        scopusProfileUrl: '',
+        wosProfileUrl: '',
+        googleScholarUrl: '',
+        totalArticles: '',
+        totalCitations: '',
+        hIndex: '',
+        title: '',
+        publicationYear: new Date().getFullYear(),
+        journalName: '',
+        language: 'English',
+        sjr: '',
+        coAuthors: '',
+        keywords: '',
+        abstract: '',
+        institution: currentUser?.role === 'admin' ? 'neftgaz' : (currentUser?.name || 'neftgaz'),
+        file: null
+      })
+      setErrors({})
+      setDuplicateWarning('')
+      // Clear file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }, [show, currentUser])
 
   const handleChange = async (e) => {
     const { name, value, files } = e.target
@@ -383,6 +418,7 @@ export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submi
                 <Form.Control
                   type="file"
                   name="file"
+                  ref={fileInputRef}
                   onChange={handleChange}
                   accept=".pdf,.jpg,.jpeg,.png"
                   disabled={submitting}
