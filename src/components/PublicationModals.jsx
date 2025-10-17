@@ -146,7 +146,7 @@ export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submi
     const selectedInst = currentUser?.role === 'admin' ? formData.institution : (currentUser?.name || 'neftgaz')
     
     // Get institution name from institutions array or user's institution
-    const selectedInstitution = institutions.find(inst => inst.username === selectedInst)
+    const selectedInstitution = institutions?.find(inst => inst.username === selectedInst)
     const instName = selectedInstitution?.institution_name || currentUser?.institutionName || 'Unknown Institution'
     
     const publicationData = {
@@ -1089,4 +1089,6 @@ export const RejectPublicationModal = ({ show, onHide, onConfirm, publication, s
       </Modal.Footer>
     </Modal>
   )
+}
+
 }
