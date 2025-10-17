@@ -651,6 +651,7 @@ const PublicationsDashboard = () => {
         onSubmit={handleAddPublication}
         currentUser={currentUser}
         submitting={submitting}
+        institutions={institutions}
       />
 
       {/* Edit Publication Modal */}
