@@ -224,15 +224,11 @@ export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submi
                       onChange={handleChange}
                       disabled={submitting}
                     >
-                      {institutions.length > 0 ? (
-                        institutions.map(inst => (
-                          <option key={inst.username} value={inst.username}>
-                            {inst.institution_name}
-                          </option>
-                        ))
-                      ) : (
-                        <option value="">Муассаса топилмади</option>
-                      )}
+                      {Object.entries(INSTITUTION_INFO).map(([key, info]) => (
+                        <option key={key} value={key}>
+                          {info.name}
+                        </option>
+                      ))}
                     </Form.Select>
                   </Form.Group>
                 </Col>
