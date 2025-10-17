@@ -1481,10 +1481,11 @@ const AdminDashboard = () => {
                         onChange={(e) => setFilterInstitution(e.target.value)}
                       >
                         <option value="all">Барча муассасалар</option>
-                        <option value="neftgaz">Нефт ва газ</option>
-                        <option value="mineral">Минерал ресурслар</option>
-                        <option value="gidro">Гидрогеология</option>
-                        <option value="geofizika">Геофизика</option>
+                        {institutions.map(inst => (
+                          <option key={inst.username} value={inst.username}>
+                            {inst.institution_name}
+                          </option>
+                        ))}
                       </Form.Select>
                     </Col>
                   </Row>
