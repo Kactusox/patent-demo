@@ -25,6 +25,7 @@ const PublicationsDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
   const [publications, setPublications] = useState([])
   const [authors, setAuthors] = useState([])
+  const [institutions, setInstitutions] = useState([])
   const [stats, setStats] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
