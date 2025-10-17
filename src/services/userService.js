@@ -1,5 +1,16 @@
 import { apiCall, API_ENDPOINTS } from './api'
 
+// Get all institutions (for dropdowns and filters)
+export const getInstitutions = async () => {
+  try {
+    const data = await apiCall('/users/institutions')
+    return data.institutions || []
+  } catch (error) {
+    console.error('Error fetching institutions:', error)
+    throw error
+  }
+}
+
 // Get all users
 export const getAllUsers = async () => {
   try {

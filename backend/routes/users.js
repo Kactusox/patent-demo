@@ -2,6 +2,25 @@ const express = require('express')
 const router = express.Router()
 const { db, logActivity } = require('../database')
 
+// GET all institutions (for dropdowns and statistics)
+router.get('/institutions', (req, res) => {
+  const query = `
+    SELECT username, institution_name 
+    FROM users 
+    WHERE role = 'institution' AND is_active = 1
+    ORDER BY institution_name ASC
+  `
+  
+  db.all(query, (err, institutions) => {
+    if (err) {
+      console.error('Error fetching institutions:', err)
+      return res.status(500).json({ error: 'Муассасаларни олишда хато' })
+    }
+
+    res.json({ success: true, institutions })
+  })
+})
+
 // GET all users (admin only)
 router.get('/', (req, res) => {
   const query = `
