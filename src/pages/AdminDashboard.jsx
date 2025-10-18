@@ -1243,55 +1243,56 @@ const AdminDashboard = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {institutionStats.map((inst, idx) => (
-                              <tr key={inst.key}>
-                                <td className="px-3 py-3 text-muted fw-semibold">{idx + 1}</td>
-                                <td className="px-3 py-3">
-                                  <div className="d-flex align-items-center">
-                                    <div 
-                                      className="rounded-circle d-flex align-items-center justify-content-center me-2"
-                                      style={{ width: 35, height: 35, backgroundColor: '#e7f1ff' }}
+                            {institutionStats.length > 0 ? (
+                              institutionStats.map((inst, idx) => (
+                                <tr key={inst.key}>
+                                  <td className="px-3 py-3 text-muted fw-semibold">{idx + 1}</td>
+                                  <td className="px-3 py-3">
+                                    <div className="d-flex align-items-center">
+                                      <div 
+                                        className="rounded-circle d-flex align-items-center justify-content-center me-2"
+                                        style={{ width: 35, height: 35, backgroundColor: '#e7f1ff' }}
+                                      >
+                                        <FaBuilding className="text-primary" style={{ fontSize: '0.9rem' }} />
+                                      </div>
+                                      <div>
+                                        <div className="fw-semibold" style={{ fontSize: '0.9rem' }}>{inst.name}</div>
+                                        <small className="text-muted" style={{ fontSize: '0.75rem' }}>{inst.key}</small>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-3 text-center">
+                                    <Badge bg="primary" pill className="px-2">{inst.patents}</Badge>
+                                  </td>
+                                  <td className="px-3 py-3 text-center">
+                                    <Badge bg="info" pill className="px-2">{inst.publications}</Badge>
+                                  </td>
+                                  <td className="px-3 py-3 text-center">
+                                    <Badge bg="dark" pill className="px-2 py-1 fw-bold">{inst.total}</Badge>
+                                  </td>
+                                  <td className="px-3 py-3 text-center">
+                                    <Badge bg="success" pill className="px-2">{inst.approved}</Badge>
+                                  </td>
+                                  <td className="px-3 py-3 text-center">
+                                    <Badge bg="warning" pill className="px-2">{inst.pending}</Badge>
+                                  </td>
+                                  <td className="px-3 py-3 text-center">
+                                    <span className="fw-semibold text-success">{inst.approvalRate}%</span>
+                                  </td>
+                                  <td className="px-3 py-3 text-center">
+                                    <Button 
+                                      variant="outline-primary" 
+                                      size="sm"
+                                      onClick={() => {
+                                        setFilterInstitution(inst.key)
+                                        setActiveTab('patents')
+                                      }}
                                     >
-                                      <FaBuilding className="text-primary" style={{ fontSize: '0.9rem' }} />
-                                    </div>
-                                    <div>
-                                      <div className="fw-semibold" style={{ fontSize: '0.9rem' }}>{inst.name}</div>
-                                      <small className="text-muted" style={{ fontSize: '0.75rem' }}>{inst.key}</small>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-3 py-3 text-center">
-                                  <Badge bg="primary" pill className="px-2">{inst.patents}</Badge>
-                                </td>
-                                <td className="px-3 py-3 text-center">
-                                  <Badge bg="info" pill className="px-2">{inst.publications}</Badge>
-                                </td>
-                                <td className="px-3 py-3 text-center">
-                                  <Badge bg="dark" pill className="px-2 py-1 fw-bold">{inst.total}</Badge>
-                                </td>
-                                <td className="px-3 py-3 text-center">
-                                  <Badge bg="success" pill className="px-2">{inst.approved}</Badge>
-                                </td>
-                                <td className="px-3 py-3 text-center">
-                                  <Badge bg="warning" pill className="px-2">{inst.pending}</Badge>
-                                </td>
-                                <td className="px-3 py-3 text-center">
-                                  <span className="fw-semibold text-success">{inst.approvalRate}%</span>
-                                </td>
-                                <td className="px-3 py-3 text-center">
-                                  <Button 
-                                    variant="outline-primary" 
-                                    size="sm"
-                                    onClick={() => {
-                                      setFilterInstitution(inst.key)
-                                      setActiveTab('patents')
-                                    }}
-                                  >
-                                    <FaEye className="me-1" /> Кўриш
-                                  </Button>
-                                </td>
-                              </tr>
-                            ))
+                                      <FaEye className="me-1" /> Кўриш
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))
                             ) : (
                               <tr>
                                 <td colSpan="9" className="text-center py-5 text-muted">
