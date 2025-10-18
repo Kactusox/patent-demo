@@ -778,7 +778,7 @@ const AdminDashboard = () => {
     setSubmitting(true)
     try {
       // Get institution name from institutions array
-      const selectedInstitution = institutions.find(inst => inst.username === patentFormData.institution)
+      const selectedInstitution = institutions?.find(inst => inst.username === patentFormData.institution)
       
       const patentData = {
         patentNumber: patentFormData.patentNumber,
@@ -1291,7 +1291,20 @@ const AdminDashboard = () => {
                                   </Button>
                                 </td>
                               </tr>
-                            ))}
+                            ))
+                            ) : (
+                              <tr>
+                                <td colSpan="9" className="text-center py-5 text-muted">
+                                  <div className="d-flex flex-column align-items-center gap-3">
+                                    <FaBuilding size={40} style={{ opacity: 0.3 }} />
+                                    <div>
+                                      <h6>Муассасалар топилмади</h6>
+                                      <p className="mb-0 small">Ҳозирча ҳеч қандай муассаса маълумоти йўқ</p>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
                           </tbody>
                         </Table>
                       </div>
@@ -2537,10 +2550,16 @@ const AdminDashboard = () => {
                     isInvalid={!!patentFormErrors.institution}
                     disabled={submitting}
                   >
-                    <option value="neftgaz">Нефт ва газ институти</option>
-                    <option value="mineral">Минерал ресурслар институти</option>
-                    <option value="gidro">Гидрогеология институти</option>
-                    <option value="geofizika">Геофизика институти</option>
+                    <option value="">Муассасани танланг</option>
+                    {institutions && institutions.length > 0 ? (
+                      institutions.map(inst => (
+                        <option key={inst.username} value={inst.username}>
+                          {inst.institution_name}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>Юкланмоқда...</option>
+                    )}
                   </Form.Select>
                   <Form.Control.Feedback type="invalid">
                     {patentFormErrors.institution}

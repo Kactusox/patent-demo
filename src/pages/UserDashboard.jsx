@@ -96,6 +96,9 @@ const UserDashboard = () => {
   const [exportStats, setExportStats] = useState(null)
   const [exportLoading, setExportLoading] = useState(false)
   
+  // Institutions state
+  const [institutions, setInstitutions] = useState([])
+  
   // Publications state
   const [publications, setPublications] = useState([])
   const [publicationStats, setPublicationStats] = useState({})
