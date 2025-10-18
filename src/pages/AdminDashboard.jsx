@@ -778,7 +778,7 @@ const AdminDashboard = () => {
     setSubmitting(true)
     try {
       // Get institution name from institutions array
-      const selectedInstitution = institutions.find(inst => inst.username === patentFormData.institution)
+      const selectedInstitution = institutions?.find(inst => inst.username === patentFormData.institution)
       
       const patentData = {
         patentNumber: patentFormData.patentNumber,
