@@ -2550,10 +2550,16 @@ const AdminDashboard = () => {
                     isInvalid={!!patentFormErrors.institution}
                     disabled={submitting}
                   >
-                    <option value="neftgaz">Нефт ва газ институти</option>
-                    <option value="mineral">Минерал ресурслар институти</option>
-                    <option value="gidro">Гидрогеология институти</option>
-                    <option value="geofizika">Геофизика институти</option>
+                    <option value="">Муассасани танланг</option>
+                    {institutions && institutions.length > 0 ? (
+                      institutions.map(inst => (
+                        <option key={inst.username} value={inst.username}>
+                          {inst.institution_name}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>Юкланмоқда...</option>
+                    )}
                   </Form.Select>
                   <Form.Control.Feedback type="invalid">
                     {patentFormErrors.institution}
