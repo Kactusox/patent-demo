@@ -27,7 +27,7 @@ import {
   getInstitutions
 } from '../services/userService'
 import { downloadZipFile, exportToExcel, getExportStats } from '../services/exportService'
-import { INSTITUTION_INFO, PATENT_TYPES } from '../utils/patentData'
+import { PATENT_TYPES } from '../utils/patentData'
 import { 
   AddUserModal, 
   EditUserModal, 
@@ -131,7 +131,7 @@ const AdminDashboard = () => {
     registrationDate: '',
     year: new Date().getFullYear(),
     authors: '',
-    institution: 'neftgaz',
+    institution: '', // Will be set when institutions load
     file: null
   })
   const [patentFormErrors, setPatentFormErrors] = useState({})
@@ -145,6 +145,7 @@ const AdminDashboard = () => {
     loadPublications()
     loadStatistics()
     loadUsers()
+    loadInstitutions()
   }, [])
 
   const loadPatents = async () => {
@@ -669,7 +670,7 @@ const AdminDashboard = () => {
       registrationDate: '',
       year: new Date().getFullYear(),
       authors: '',
-      institution: 'neftgaz',
+      institution: institutions.length > 0 ? institutions[0].username : '',
       file: null
     })
     setPatentFormErrors({})
@@ -777,7 +778,8 @@ const AdminDashboard = () => {
 
     setSubmitting(true)
     try {
-      const institutionInfo = INSTITUTION_INFO[patentFormData.institution]
+      // Get institution name from institutions array
+      const selectedInstitution = institutions.find(inst => inst.username === patentFormData.institution)
       
       const patentData = {
         patentNumber: patentFormData.patentNumber,
@@ -789,7 +791,7 @@ const AdminDashboard = () => {
         year: patentFormData.year,
         authors: patentFormData.authors,
         institution: patentFormData.institution,
-        institutionName: institutionInfo?.fullName || institutionInfo?.shortName,
+        institutionName: selectedInstitution?.institution_name || patentFormData.institution,
         createdBy: currentUser.username
       }
 
@@ -877,8 +879,8 @@ const AdminDashboard = () => {
     },
     { 
       label: 'Муассасалар', 
-      value: Object.keys(INSTITUTION_INFO).length.toString(), 
-      subValue: `${users.filter(u => u.role === 'institution').length} актив фойдаланувчи`,
+      value: institutions.length.toString(), 
+      subValue: `${users.filter(u => u.role === 'institution' && u.is_active).length} актив фойдаланувчи`,
       icon: FaBuilding, 
       color: '#198754',
       bgColor: '#d1f7e5',
@@ -1370,64 +1372,60 @@ const AdminDashboard = () => {
                     </Card.Body>
                   </Card>
 
-                  {/* Status Summary */}
+                  {/* Recent Activity - Latest approved items */}
                   <Card className="border-0 shadow-sm">
                     <Card.Header className="bg-white border-bottom py-3">
                       <h5 className="mb-0 fw-bold">
-                        <FaChartBar className="me-2 text-success" />
-                        Ҳолат хулосаси
+                        <FaClock className="me-2 text-info" />
+                        Сўнгги фаолият
                       </h5>
                     </Card.Header>
                     <Card.Body>
-                      <div className="mb-3">
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                          <span className="text-muted small">Тасдиқланган</span>
-                          <span className="fw-bold">{totalApproved} / {totalDocuments}</span>
+                      {recentActivity.length === 0 ? (
+                        <div className="text-center text-muted py-4">
+                          <FaClock size={32} className="mb-2 opacity-50" />
+                          <p className="mb-0">Сўнгги фаолият йўқ</p>
                         </div>
-                        <div className="progress" style={{ height: '8px' }}>
-                          <div 
-                            className="progress-bar bg-success" 
-                            style={{ width: `${(totalApproved/totalDocuments)*100}%` }}
-                          ></div>
+                      ) : (
+                        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                          {recentActivity.map((item, idx) => (
+                            <div 
+                              key={`${item.type}-${item.id}`} 
+                              className={`py-3 ${idx < recentActivity.length - 1 ? 'border-bottom' : ''}`}
+                            >
+                              <div className="d-flex align-items-start gap-2">
+                                <Badge 
+                                  bg={item.type === 'patent' ? 'primary' : 'danger'} 
+                                  className="px-2 py-1"
+                                  style={{ fontSize: '0.7rem', minWidth: '55px', textAlign: 'center' }}
+                                >
+                                  {item.type === 'patent' ? 'Патент' : 'Мақола'}
+                                </Badge>
+                                <div className="flex-grow-1">
+                                  <Badge 
+                                    bg={
+                                      item.status === 'approved' ? 'success' : 
+                                      item.status === 'pending' ? 'warning' : 
+                                      'danger'
+                                    }
+                                    className="mb-2"
+                                    style={{ fontSize: '0.65rem' }}
+                                  >
+                                    {item.status === 'approved' ? 'Тасдиқланган' : 
+                                     item.status === 'pending' ? 'Кутилмоқда' : 
+                                     'Рад этилган'}
+                                  </Badge>
+                                  <div className="small fw-semibold mb-1 text-truncate" style={{ maxWidth: '300px' }}>
+                                    {item.title}
+                                  </div>
+                                  <small className="text-muted d-block">
+                                    {item.institution_name}
+                                  </small>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <small className="text-muted">{((totalApproved/totalDocuments)*100).toFixed(1)}%</small>
-                      </div>
-
-                      <div className="mb-3">
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                          <span className="text-muted small">Кутилмоқда</span>
-                          <span className="fw-bold">{totalPending} / {totalDocuments}</span>
-                        </div>
-                        <div className="progress" style={{ height: '8px' }}>
-                          <div 
-                            className="progress-bar bg-warning" 
-                            style={{ width: `${(totalPending/totalDocuments)*100}%` }}
-                          ></div>
-                        </div>
-                        <small className="text-muted">{((totalPending/totalDocuments)*100).toFixed(1)}%</small>
-                      </div>
-
-                      <div>
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                          <span className="text-muted small">Рад этилган</span>
-                          <span className="fw-bold">{totalRejected} / {totalDocuments}</span>
-                        </div>
-                        <div className="progress" style={{ height: '8px' }}>
-                          <div 
-                            className="progress-bar bg-danger" 
-                            style={{ width: `${(totalRejected/totalDocuments)*100}%` }}
-                          ></div>
-                        </div>
-                        <small className="text-muted">{((totalRejected/totalDocuments)*100).toFixed(1)}%</small>
-                      </div>
-
-                      {totalPending > 0 && (
-                        <Alert variant="warning" className="mt-3 mb-0 py-2">
-                          <small>
-                            <FaExclamationTriangle className="me-2" />
-                            {totalPending} та ҳужжат тасдиқланишни кутмоқда
-                          </small>
-                        </Alert>
                       )}
                     </Card.Body>
                   </Card>
@@ -1617,7 +1615,7 @@ const AdminDashboard = () => {
                                   <small className="text-muted">{patent.type}</small>
                                 </td>
                                 <td className="px-4 py-3">
-                                  <small>{INSTITUTION_INFO[patent.institution]?.shortName}</small>
+                                  <small>{patent.institution_name}</small>
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                   {patent.status === 'approved' && (
@@ -1860,10 +1858,11 @@ const AdminDashboard = () => {
                         onChange={(e) => setFilterPublicationInstitution(e.target.value)}
                       >
                         <option value="all">Барча муассасалар</option>
-                        <option value="neftgaz">Нефт ва газ</option>
-                        <option value="mineral">Минерал ресурслар</option>
-                        <option value="gidro">Гидрогеология</option>
-                        <option value="geofizika">Геофизика</option>
+                        {institutions.map((inst) => (
+                          <option key={inst.username} value={inst.username}>
+                            {inst.institution_name}
+                          </option>
+                        ))}
                       </Form.Select>
                     </Col>
                   </Row>
@@ -1957,7 +1956,7 @@ const AdminDashboard = () => {
                                   <small className="text-muted">{pub.journal_name || 'N/A'}</small>
                                 </td>
                                 <td className="px-4 py-3">
-                                  <small>{INSTITUTION_INFO[pub.institution]?.shortName}</small>
+                                  <small>{pub.institution_name}</small>
                                 </td>
                                 <td className="px-4 py-3 text-center">
                                   {pub.status === 'approved' && (
@@ -2536,10 +2535,12 @@ const AdminDashboard = () => {
                     isInvalid={!!patentFormErrors.institution}
                     disabled={submitting}
                   >
-                    <option value="neftgaz">Нефт ва газ институти</option>
-                    <option value="mineral">Минерал ресурслар институти</option>
-                    <option value="gidro">Гидрогеология институти</option>
-                    <option value="geofizika">Геофизика институти</option>
+                    <option value="">Муассасани танланг</option>
+                    {institutions.map((inst) => (
+                      <option key={inst.username} value={inst.username}>
+                        {inst.institution_name}
+                      </option>
+                    ))}
                   </Form.Select>
                   <Form.Control.Feedback type="invalid">
                     {patentFormErrors.institution}

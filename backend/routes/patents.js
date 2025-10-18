@@ -460,4 +460,21 @@ router.get('/stats/summary', (req, res) => {
   })
 })
 
+// GET patent types from database
+router.get('/types/list', (req, res) => {
+  const query = 'SELECT name FROM patent_types ORDER BY display_order ASC'
+  
+  db.all(query, (err, types) => {
+    if (err) {
+      console.error('Error fetching patent types:', err)
+      return res.status(500).json({ error: 'Патент турларини олишда хато' })
+    }
+    
+    res.json({ 
+      success: true, 
+      types: types.map(t => t.name) 
+    })
+  })
+})
+
 module.exports = router
