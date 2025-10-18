@@ -1091,4 +1091,3 @@ export const RejectPublicationModal = ({ show, onHide, onConfirm, publication, s
   )
 }
 
-}
