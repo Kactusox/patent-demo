@@ -6,7 +6,7 @@ import { INSTITUTION_INFO } from '../utils/patentData'
 import { checkDuplicatePublication } from '../services/publicationService'
 
 // ==================== ADD PUBLICATION MODAL ====================
-export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting }) => {
+export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting, institutions = []}) => {
   const [formData, setFormData] = useState({
     authorFullName: '',
     authorOrcid: '',
