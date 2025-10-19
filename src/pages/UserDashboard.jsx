@@ -106,6 +106,9 @@ const UserDashboard = () => {
   const [publicationSearchQuery, setPublicationSearchQuery] = useState('')
   const [publicationLoading, setPublicationLoading] = useState(false)
   const [publicationSubmitting, setPublicationSubmitting] = useState(false)
+  
+  // Institutions state (for publication modals)
+  const [institutions, setInstitutions] = useState([])
 
   const currentUser = getCurrentUser()
   
@@ -115,6 +118,16 @@ const UserDashboard = () => {
     loadPublicationsData()
     loadInstitutions()
   }, [])
+  
+  // Load institutions (for publication modal dropdown)
+  const loadInstitutions = async () => {
+    try {
+      const allInstitutions = await getInstitutions()
+      setInstitutions(allInstitutions)
+    } catch (error) {
+      console.error('Error loading institutions:', error)
+    }
+  }
   
   // Load publications data
   const loadPublicationsData = async () => {

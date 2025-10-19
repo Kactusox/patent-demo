@@ -16,7 +16,6 @@ import {
   exportPublicationsToExcel 
 } from '../services/publicationService'
 import { formatCitations, getStatusBadge } from '../utils/publicationData'
-import { INSTITUTION_INFO } from '../utils/patentData'
 import AddPublicationModal from '../components/AddPublicationModal'
 import EditPublicationModal from '../components/EditPublicationModal'
 import PublicationDetailsModal from '../components/PublicationDetailsModal'
@@ -515,7 +514,7 @@ const PublicationsDashboard = () => {
                           {currentUser.role === 'admin' && (
                             <td>
                               <small className="text-muted">
-                                {INSTITUTION_INFO[pub.institution]?.shortName || pub.institution}
+                                {pub.institution_name}
                               </small>
                             </td>
                           )}

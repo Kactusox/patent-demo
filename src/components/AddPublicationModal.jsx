@@ -24,7 +24,7 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting, 
     coAuthors: '',
     keywords: '',
     abstract: '',
-    institution: currentUser.role === 'admin' ? 'neftgaz' : currentUser.name,
+    institution: currentUser.role === 'admin' ? (institutions.length > 0 ? institutions[0].username : '') : currentUser.name,
     file: null
   })
 
@@ -51,7 +51,7 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting, 
         coAuthors: '',
         keywords: '',
         abstract: '',
-        institution: currentUser.role === 'admin' ? 'neftgaz' : currentUser.name,
+        institution: currentUser.role === 'admin' ? (institutions.length > 0 ? institutions[0].username : '') : currentUser.name,
         file: null
       })
       setErrors({})
@@ -154,7 +154,7 @@ const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting, 
       coAuthors: '',
       keywords: '',
       abstract: '',
-      institution: currentUser.role === 'admin' ? 'neftgaz' : currentUser.name,
+      institution: currentUser.role === 'admin' ? (institutions.length > 0 ? institutions[0].username : '') : currentUser.name,
       file: null
     })
     setErrors({})

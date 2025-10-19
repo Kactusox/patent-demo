@@ -17,7 +17,7 @@ const initDatabase = () => {
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE NOT NULL,s
+      username TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       role TEXT NOT NULL CHECK(role IN ('admin', 'institution')),
       institution_name TEXT,
@@ -168,6 +168,22 @@ const initDatabase = () => {
       db.run('CREATE INDEX IF NOT EXISTS idx_publications_status ON publications(status)')
     }
   })
+
+  // Patent types reference table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS patent_types (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT UNIQUE NOT NULL,
+      display_order INTEGER DEFAULT 0
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating patent_types table:', err.message)
+    } else {
+      console.log('✅ Patent types table ready')
+      insertDefaultPatentTypes()
+    }
+  })
 }
 
 // Insert default users
@@ -246,6 +262,40 @@ const insertDefaultUsers = () => {
 
     stmt.finalize(() => {
       console.log('✅ Default users inserted successfully')
+    })
+  })
+}
+
+// Insert default patent types
+const insertDefaultPatentTypes = () => {
+  db.get('SELECT COUNT(*) as count FROM patent_types', [], (err, row) => {
+    if (err) {
+      console.error('Error checking patent types:', err)
+      return
+    }
+    
+    if (row.count > 0) {
+      console.log('✅ Patent types already exist')
+      return
+    }
+    
+    console.log('📝 Inserting default patent types...')
+    const types = [
+      'Ихтирога патент',
+      'Фойдали моделга патент',
+      'Саноат намунаси патенти',
+      'Маълумотлар базаси гувоҳномаси',
+      'Муаллифлик ҳуқуқи',
+      'ЭХМ учун дастур'
+    ]
+
+    const stmt = db.prepare('INSERT INTO patent_types (name, display_order) VALUES (?, ?)')
+    types.forEach((type, index) => {
+      stmt.run(type, index)
+    })
+
+    stmt.finalize(() => {
+      console.log('✅ Default patent types inserted')
     })
   })
 }
