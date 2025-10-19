@@ -2,11 +2,10 @@ import { useState, useEffect, useRef } from 'react'
 import { Modal, Button, Form, Row, Col, Badge, Table, Alert } from 'react-bootstrap'
 import { FaTimes, FaSave, FaExternalLinkAlt, FaDownload, FaCheck, FaExclamationTriangle } from 'react-icons/fa'
 import { LANGUAGES, formatCitations, getStatusBadge } from '../utils/publicationData'
-import { INSTITUTION_INFO } from '../utils/patentData'
 import { checkDuplicatePublication } from '../services/publicationService'
 
 // ==================== ADD PUBLICATION MODAL ====================
-export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting, institutions = []}) => {
+export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submitting, institutions = [] }) => {
   const [formData, setFormData] = useState({
     authorFullName: '',
     authorOrcid: '',
@@ -32,6 +31,16 @@ export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submi
   const [duplicateWarning, setDuplicateWarning] = useState('')
   const [checkingDuplicate, setCheckingDuplicate] = useState(false)
   const fileInputRef = useRef(null)
+
+  // Set default institution when institutions load or modal opens
+  useEffect(() => {
+    if (show && currentUser?.role === 'admin' && institutions.length > 0 && !formData.institution) {
+      setFormData(prev => ({
+        ...prev,
+        institution: institutions[0].username
+      }))
+    }
+  }, [show, institutions, currentUser])
 
   // Reset form when modal is closed
   useEffect(() => {
@@ -229,11 +238,15 @@ export const AddPublicationModal = ({ show, onHide, onSubmit, currentUser, submi
                       onChange={handleChange}
                       disabled={submitting}
                     >
-                      {Object.entries(INSTITUTION_INFO).map(([key, info]) => (
-                        <option key={key} value={key}>
-                          {info.name}
-                        </option>
-                      ))}
+                      {institutions.length > 0 ? (
+                        institutions.map(inst => (
+                          <option key={inst.username} value={inst.username}>
+                            {inst.institution_name}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">Муассаса топилмади</option>
+                      )}
                     </Form.Select>
                   </Form.Group>
                 </Col>
