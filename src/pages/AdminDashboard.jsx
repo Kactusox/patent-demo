@@ -1214,223 +1214,155 @@ const AdminDashboard = () => {
                 </Card.Body>
               </Card>
 
-              <Row className="g-4 mb-4">
-                {/* Institutions Statistics Table */}
-                <Col lg={8}>
-                  <Card className="border-0 shadow-sm h-100">
-                    <Card.Header className="bg-white border-bottom py-3">
-                      <div className="d-flex justify-content-between align-items-center">
-                        <h5 className="mb-0 fw-bold">
-                          <FaBuilding className="me-2 text-primary" />
-                          Муассасалар бўйича статистика
-                        </h5>
-                        <Badge bg="secondary">{institutionStats.length} муассаса</Badge>
-                      </div>
-                    </Card.Header>
-                    <Card.Body className="p-0">
-                      <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                        <Table responsive hover className="mb-0">
-                          <thead className="bg-light sticky-top">
-                            <tr>
-                              <th className="px-3 py-3">#</th>
-                              <th className="px-3 py-3">Муассаса</th>
-                              <th className="px-3 py-3 text-center">Патентлар</th>
-                              <th className="px-3 py-3 text-center">Мақолалар</th>
-                              <th className="px-3 py-3 text-center">Жами</th>
-                              <th className="px-3 py-3 text-center">Тасдиқланган</th>
-                              <th className="px-3 py-3 text-center">Кутилмоқда</th>
-                              <th className="px-3 py-3 text-center">Фоиз</th>
-                              <th className="px-3 py-3 text-center">Амаллар</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {institutionStats.map((inst, idx) => (
-                              <tr key={inst.key}>
-                                <td className="px-3 py-3 text-muted fw-semibold">{idx + 1}</td>
-                                <td className="px-3 py-3">
-                                  <div className="d-flex align-items-center">
-                                    <div 
-                                      className="rounded-circle d-flex align-items-center justify-content-center me-2"
-                                      style={{ width: 35, height: 35, backgroundColor: '#e7f1ff' }}
-                                    >
-                                      <FaBuilding className="text-primary" style={{ fontSize: '0.9rem' }} />
-                                    </div>
-                                    <div>
-                                      <div className="fw-semibold" style={{ fontSize: '0.9rem' }}>{inst.name}</div>
-                                      <small className="text-muted" style={{ fontSize: '0.75rem' }}>{inst.key}</small>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-3 py-3 text-center">
-                                  <Badge bg="primary" pill className="px-2">{inst.patents}</Badge>
-                                </td>
-                                <td className="px-3 py-3 text-center">
-                                  <Badge bg="info" pill className="px-2">{inst.publications}</Badge>
-                                </td>
-                                <td className="px-3 py-3 text-center">
-                                  <Badge bg="dark" pill className="px-2 py-1 fw-bold">{inst.total}</Badge>
-                                </td>
-                                <td className="px-3 py-3 text-center">
-                                  <Badge bg="success" pill className="px-2">{inst.approved}</Badge>
-                                </td>
-                                <td className="px-3 py-3 text-center">
-                                  <Badge bg="warning" pill className="px-2">{inst.pending}</Badge>
-                                </td>
-                                <td className="px-3 py-3 text-center">
-                                  <span className="fw-semibold text-success">{inst.approvalRate}%</span>
-                                </td>
-                                <td className="px-3 py-3 text-center">
-                                  <Button 
-                                    variant="outline-primary" 
-                                    size="sm"
-                                    onClick={() => {
-                                      setFilterInstitution(inst.key)
-                                      setActiveTab('patents')
-                                    }}
-                                  >
-                                    <FaEye className="me-1" /> Кўриш
-                                  </Button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </Table>
-                      </div>
-                    </Card.Body>
-                  </Card>
-                </Col>
-
-                {/* Recent Activity & Status Overview */}
-                <Col lg={4}>
-                  <Card className="border-0 shadow-sm mb-4">
-                    <Card.Header className="bg-white border-bottom py-3">
-                      <h5 className="mb-0 fw-bold">
-                        <FaClock className="me-2 text-warning" />
-                        Сўнгги фаолият
-                      </h5>
-                    </Card.Header>
-                    <Card.Body className="p-0">
-                      <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
-                        {recentActivity.length === 0 ? (
-                          <div className="text-center py-4 text-muted">
-                            Сўнгги 7 кунда фаолият йўқ
-                          </div>
+              {/* Institutions Statistics Table - Full Width */}
+              <Card className="border-0 shadow-sm mb-4">
+                <Card.Header className="bg-white border-bottom py-3">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <h5 className="mb-0 fw-bold">
+                      <FaBuilding className="me-2 text-primary" />
+                      Муассасалар бўйича статистика
+                    </h5>
+                    <Badge bg="secondary">{institutionStats.length} муассаса</Badge>
+                  </div>
+                </Card.Header>
+                <Card.Body className="p-0">
+                  <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                    <Table responsive hover className="mb-0">
+                      <thead className="bg-light sticky-top">
+                        <tr>
+                          <th className="px-3 py-3">#</th>
+                          <th className="px-3 py-3">Муассаса</th>
+                          <th className="px-3 py-3 text-center">Патентлар</th>
+                          <th className="px-3 py-3 text-center">Мақолалар</th>
+                          <th className="px-3 py-3 text-center">Жами</th>
+                          <th className="px-3 py-3 text-center">Тасдиқланган</th>
+                          <th className="px-3 py-3 text-center">Кутилмоқда</th>
+                          <th className="px-3 py-3 text-center">Фоиз</th>
+                          <th className="px-3 py-3 text-center">Амаллар</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {institutionStats.length === 0 ? (
+                          <tr>
+                            <td colSpan="9" className="text-center py-5 text-muted">
+                              <FaBuilding size={48} className="mb-3 opacity-50" />
+                              <p className="mb-0">Ҳозирча муассасалар мавжуд эмас</p>
+                            </td>
+                          </tr>
                         ) : (
-                          <div className="list-group list-group-flush">
-                            {recentActivity.map((item, idx) => (
-                              <div key={idx} className="list-group-item border-0 py-3">
-                                <div className="d-flex align-items-start">
+                          institutionStats.map((inst, idx) => (
+                            <tr key={inst.key}>
+                              <td className="px-3 py-3 text-muted fw-semibold">{idx + 1}</td>
+                              <td className="px-3 py-3">
+                                <div className="d-flex align-items-center">
                                   <div 
-                                    className="rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0"
-                                    style={{ 
-                                      width: 35, 
-                                      height: 35, 
-                                      backgroundColor: item.type === 'patent' ? '#e7f1ff' : '#f7d6e6'
-                                    }}
+                                    className="rounded-circle d-flex align-items-center justify-content-center me-2"
+                                    style={{ width: 35, height: 35, backgroundColor: '#e7f1ff' }}
                                   >
-                                    {item.type === 'patent' ? (
-                                      <FaFileAlt className="text-primary" style={{ fontSize: '0.9rem' }} />
-                                    ) : (
-                                      <FaBook className="text-danger" style={{ fontSize: '0.9rem' }} />
-                                    )}
+                                    <FaBuilding className="text-primary" style={{ fontSize: '0.9rem' }} />
                                   </div>
-                                  <div className="flex-grow-1">
-                                    <div className="d-flex justify-content-between align-items-start mb-1">
-                                      <Badge 
-                                        bg={item.type === 'patent' ? 'primary' : 'danger'} 
-                                        className="mb-1"
-                                        style={{ fontSize: '0.65rem' }}
-                                      >
-                                        {item.type === 'patent' ? 'Патент' : 'Мақола'}
-                                      </Badge>
-                                      <Badge 
-                                        bg={
-                                          item.status === 'approved' ? 'success' : 
-                                          item.status === 'pending' ? 'warning' : 
-                                          'danger'
-                                        }
-                                        style={{ fontSize: '0.65rem' }}
-                                      >
-                                        {item.status === 'approved' ? 'Тасдиқланган' : 
-                                         item.status === 'pending' ? 'Кутилмоқда' : 
-                                         'Рад этилган'}
-                                      </Badge>
-                                    </div>
-                                    <div className="small text-truncate fw-semibold mb-1" style={{ maxWidth: '200px' }}>
-                                      {item.title}
-                                    </div>
-                                    <small className="text-muted d-block" style={{ fontSize: '0.75rem' }}>
-                                      {item.institution_name}
-                                    </small>
+                                  <div>
+                                    <div className="fw-semibold" style={{ fontSize: '0.9rem' }}>{inst.name}</div>
+                                    <small className="text-muted" style={{ fontSize: '0.75rem' }}>{inst.key}</small>
                                   </div>
                                 </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </Card.Body>
-                  </Card>
-
-                  {/* Recent Activity - Latest approved items */}
-                  <Card className="border-0 shadow-sm">
-                    <Card.Header className="bg-white border-bottom py-3">
-                      <h5 className="mb-0 fw-bold">
-                        <FaClock className="me-2 text-info" />
-                        Сўнгги фаолият
-                      </h5>
-                    </Card.Header>
-                    <Card.Body>
-                      {recentActivity.length === 0 ? (
-                        <div className="text-center text-muted py-4">
-                          <FaClock size={32} className="mb-2 opacity-50" />
-                          <p className="mb-0">Сўнгги фаолият йўқ</p>
-                        </div>
-                      ) : (
-                        <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                          {recentActivity.map((item, idx) => (
-                            <div 
-                              key={`${item.type}-${item.id}`} 
-                              className={`py-3 ${idx < recentActivity.length - 1 ? 'border-bottom' : ''}`}
-                            >
-                              <div className="d-flex align-items-start gap-2">
-                                <Badge 
-                                  bg={item.type === 'patent' ? 'primary' : 'danger'} 
-                                  className="px-2 py-1"
-                                  style={{ fontSize: '0.7rem', minWidth: '55px', textAlign: 'center' }}
+                              </td>
+                              <td className="px-3 py-3 text-center">
+                                <Badge bg="primary" pill className="px-2">{inst.patents}</Badge>
+                              </td>
+                              <td className="px-3 py-3 text-center">
+                                <Badge bg="info" pill className="px-2">{inst.publications}</Badge>
+                              </td>
+                              <td className="px-3 py-3 text-center">
+                                <Badge bg="dark" pill className="px-2 py-1 fw-bold">{inst.total}</Badge>
+                              </td>
+                              <td className="px-3 py-3 text-center">
+                                <Badge bg="success" pill className="px-2">{inst.approved}</Badge>
+                              </td>
+                              <td className="px-3 py-3 text-center">
+                                <Badge bg="warning" pill className="px-2">{inst.pending}</Badge>
+                              </td>
+                              <td className="px-3 py-3 text-center">
+                                <span className="fw-semibold text-success">{inst.approvalRate}%</span>
+                              </td>
+                              <td className="px-3 py-3 text-center">
+                                <Button 
+                                  variant="outline-primary" 
+                                  size="sm"
+                                  onClick={() => {
+                                    setFilterInstitution(inst.key)
+                                    setActiveTab('patents')
+                                  }}
                                 >
-                                  {item.type === 'patent' ? 'Патент' : 'Мақола'}
-                                </Badge>
-                                <div className="flex-grow-1">
-                                  <Badge 
-                                    bg={
-                                      item.status === 'approved' ? 'success' : 
-                                      item.status === 'pending' ? 'warning' : 
-                                      'danger'
-                                    }
-                                    className="mb-2"
-                                    style={{ fontSize: '0.65rem' }}
-                                  >
-                                    {item.status === 'approved' ? 'Тасдиқланган' : 
-                                     item.status === 'pending' ? 'Кутилмоқда' : 
-                                     'Рад этилган'}
-                                  </Badge>
-                                  <div className="small fw-semibold mb-1 text-truncate" style={{ maxWidth: '300px' }}>
-                                    {item.title}
-                                  </div>
-                                  <small className="text-muted d-block">
-                                    {item.institution_name}
-                                  </small>
-                                </div>
+                                  <FaEye className="me-1" /> Кўриш
+                                </Button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </Table>
+                  </div>
+                </Card.Body>
+              </Card>
+
+              {/* Recent Activity - Single Section with Taller Height */}
+              <Card className="border-0 shadow-sm mb-4">
+                <Card.Header className="bg-white border-bottom py-3">
+                  <h5 className="mb-0 fw-bold">
+                    <FaClock className="me-2 text-info" />
+                    Сўнгги фаолият
+                  </h5>
+                </Card.Header>
+                <Card.Body>
+                  {recentActivity.length === 0 ? (
+                    <div className="text-center text-muted py-5">
+                      <FaClock size={48} className="mb-3 opacity-50" />
+                      <p className="mb-0">Сўнгги фаолият йўқ</p>
+                    </div>
+                  ) : (
+                    <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                      {recentActivity.map((item, idx) => (
+                        <div 
+                          key={`${item.type}-${item.id}`} 
+                          className={`py-3 ${idx < recentActivity.length - 1 ? 'border-bottom' : ''}`}
+                        >
+                          <div className="d-flex align-items-start gap-3">
+                            <Badge 
+                              bg={item.type === 'patent' ? 'primary' : 'danger'} 
+                              className="px-2 py-1"
+                              style={{ fontSize: '0.7rem', minWidth: '60px', textAlign: 'center' }}
+                            >
+                              {item.type === 'patent' ? 'Патент' : 'Мақола'}
+                            </Badge>
+                            <div className="flex-grow-1">
+                              <Badge 
+                                bg={
+                                  item.status === 'approved' ? 'success' : 
+                                  item.status === 'pending' ? 'warning' : 
+                                  'danger'
+                                }
+                                className="mb-2"
+                                style={{ fontSize: '0.7rem' }}
+                              >
+                                {item.status === 'approved' ? 'Тасдиқланган' : 
+                                 item.status === 'pending' ? 'Кутилмоқда' : 
+                                 'Рад этилган'}
+                              </Badge>
+                              <div className="fw-semibold mb-1">
+                                {item.title}
                               </div>
+                              <small className="text-muted d-block">
+                                {item.institution_name}
+                              </small>
                             </div>
-                          ))}
+                          </div>
                         </div>
-                      )}
-                    </Card.Body>
-                  </Card>
-                </Col>
-              </Row>
+                      ))}
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
             </>
           )}
 
